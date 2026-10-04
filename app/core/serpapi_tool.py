@@ -18,7 +18,7 @@ class SerpApiTool:
         self.api_key = settings.serpapi_api_key
 
     async def search_recall_and_brand_safety(self, product_or_brand: str) -> Dict[str, Any]:
-        query = f'"{product_or_brand}" (allergen recall OR "cross contamination" OR "gluten free" OR "may contain")'
+        query = f'"{product_or_brand}" (allergen recall OR "cross contamination" OR "tree nut" OR "peanut" OR "sesame" OR "coconut" OR "may contain")'
         
         with AgentSpan("serpapi.search", f"SerpApi web search for {product_or_brand}", {"query": query}) as span:
             if self.api_key:
@@ -63,22 +63,22 @@ class SerpApiTool:
 
     def _get_curated_intelligence(self, product: str) -> List[Dict[str, str]]:
         p_lower = product.lower()
-        if "oat" in p_lower and "certified" not in p_lower:
+        if "za'atar" in p_lower or "sesame" in p_lower or "tahini" in p_lower or "bakery" in p_lower:
             return [{
-                "title": "Gluten-Free Watchdog Advisory: Commercial Oat Contamination",
-                "snippet": "Commodity oats are routinely contaminated with wheat, barley, and rye during agricultural harvesting and milling unless certified under a purity protocol.",
-                "link": "https://www.glutenfreewatchdog.org"
+                "title": "FDA FASTER Act Sesame Compliance Alert: Bakery & Spice Cross-Contact",
+                "snippet": "Sesame is now a recognized major allergen under the FASTER Act. Bakeries and spice packers frequently exhibit unlabelled sesame seed dust cross-contact.",
+                "link": "https://www.fda.gov/food/food-allergens-gluten-free-guidance-documents-regulatory-information/sesame"
             }]
-        elif "trader joe" in p_lower or "cheerios" in p_lower:
+        elif "vegan" in p_lower or "mozzarella" in p_lower or "cheese" in p_lower or "dairy" in p_lower:
             return [{
-                "title": "Consumer Celiac Alert: Facility Cross-Contact Variation",
-                "snippet": "Batch testing indicates variability in mechanically sorted grains. Strict celiac patients are advised to seek third-party GFCO certified lots.",
-                "link": "https://celiac.org"
+                "title": "Plant-Based Dairy Alternative Advisory: Hidden Coconut & Nut Bases",
+                "snippet": "Commercial dairy alternatives routinely use refined coconut oil, coconut cream, or cashew paste as structuring fats without prominent front-panel warnings.",
+                "link": "https://www.foodallergy.org/resources/tree-nut-allergy"
             }]
-        elif "bar" in p_lower or "chocolate" in p_lower or "bakery" in p_lower:
+        elif "bar" in p_lower or "chocolate" in p_lower or "satay" in p_lower or "snack" in p_lower:
             return [{
-                "title": "FDA Allergen Compliance Notice: Shared Confectionery Lines",
-                "snippet": "Chocolate and snack bars manufactured without dedicated nut-free barriers exhibit high rates of tree nut cross-contact.",
+                "title": "FDA Allergen Compliance Notice: Shared Nut & Confectionery Lines",
+                "snippet": "Confectionery, energy bars, and Asian specialty sauces manufactured without dedicated nut-free barriers exhibit high rates of peanut and tree nut cross-contact.",
                 "link": "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts"
             }]
         else:

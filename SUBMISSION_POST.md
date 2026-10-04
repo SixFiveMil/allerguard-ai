@@ -104,7 +104,7 @@ The complete codebase is open source on GitHub:
 allerguard-ai/
 ├── app/
 │   ├── main.py                   # FastAPI server & interactive API endpoints
-│   ├── config.py                 # Maya's medical profile & environment settings
+│   ├── config.py                 # Personal dietary profile & environment settings
 │   ├── core/
 │   │   ├── agent.py              # Master orchestrator combining all open AI models
 │   │   ├── gemma_engine.py       # Google Gemma 2 open-weight reasoning engine
