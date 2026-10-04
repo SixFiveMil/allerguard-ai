@@ -48,7 +48,7 @@ function applyPreset(sample) {
   document.getElementById('product_name').value = sample.name;
   document.getElementById('category').value = sample.category;
   document.getElementById('ingredients_text').value = sample.ingredients;
-  document.getElementById('certified_gf').checked = Boolean(sample.certified_gf);
+  document.getElementById('certified_allergen_free').checked = Boolean(sample.certified_allergen_free);
   document.getElementById('dedicated_facility').checked = Boolean(sample.dedicated_facility);
   
   // Auto trigger analysis
@@ -63,7 +63,7 @@ function setupFormHandler() {
     const productName = document.getElementById('product_name').value.trim();
     const ingredientsText = document.getElementById('ingredients_text').value.trim();
     const category = document.getElementById('category').value;
-    const certifiedGf = document.getElementById('certified_gf').checked;
+    const certifiedAllergenFree = document.getElementById('certified_allergen_free').checked;
     const dedicatedFacility = document.getElementById('dedicated_facility').checked;
 
     if (!productName || !ingredientsText) return;
@@ -78,7 +78,7 @@ function setupFormHandler() {
           product_name: productName,
           ingredients_text: ingredientsText,
           category: category,
-          certified_gf: certifiedGf,
+          certified_allergen_free: certifiedAllergenFree,
           dedicated_facility: dedicatedFacility
         })
       });
@@ -101,9 +101,9 @@ function showLoadingState() {
 
   const stepText = document.getElementById('pipeline-step-text');
   const steps = [
-    '1/4: TabPFN evaluating tabular manufacturing features...',
-    '2/4: SerpApi checking FDA recalls & brand disclosures...',
-    '3/4: Google Gemma 2 open model clinical synthesis...',
+    '1/4: TabPFN evaluating tabular manufacturing and ambiguity features...',
+    '2/4: SerpApi checking FDA recall notices & brand disclosures...',
+    '3/4: Google Gemma 2 clinical synthesis for nut/sesame/coconut triggers...',
     '4/4: ElevenLabs generating hands-free audio briefing...'
   ];
 
@@ -134,19 +134,19 @@ function renderResults(data) {
     icon.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 bg-rose-500 text-white';
     icon.innerHTML = '<i class="fa-solid fa-ban"></i>';
     title.innerText = 'DANGER — DO NOT EAT';
-    subtitle.innerText = `Severe Hazard for ${data.friend_name}`;
+    subtitle.innerText = 'Nut, Peanut, Coconut, or Sesame Allergen Triggered';
   } else if (verdict === 'CAUTION') {
     banner.className = 'p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl bg-amber-950/30 border-amber-500/50 text-amber-200';
     icon.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 bg-amber-500 text-slate-950';
     icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
     title.innerText = 'CAUTION — INVESTIGATE';
-    subtitle.innerText = `Ambiguous Risk for ${data.friend_name}`;
+    subtitle.innerText = 'Ambiguous Derivatives / Unconfirmed Manufacturing Lines';
   } else {
     banner.className = 'p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl bg-emerald-950/30 border-emerald-500/50 text-emerald-200';
     icon.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 bg-emerald-500 text-slate-950';
     icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
     title.innerText = 'SAFE TO CONSUME';
-    subtitle.innerText = `Verified for ${data.friend_name}`;
+    subtitle.innerText = 'Zero Nut, Peanut, Coconut, or Sesame Presence';
   }
 
   // Setup Audio playback
@@ -198,7 +198,6 @@ function renderResults(data) {
     </div>
   `).join('');
 
-  // Smooth scroll into view
   banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 

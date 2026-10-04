@@ -10,7 +10,7 @@ async def test_health_endpoint():
         assert res.status_code == 200
         data = res.json()
         assert data["status"] == "healthy"
-        assert data["friend"] == "Maya"
+        assert "protected_user" in data
 
 @pytest.mark.asyncio
 async def test_demo_samples_endpoint():
@@ -26,11 +26,11 @@ async def test_analyze_endpoint():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         payload = {
-            "product_name": "Gluten-Free Brown Rice Pasta",
-            "ingredients_text": "Organic brown rice flour, water. Certified Gluten-Free.",
+            "product_name": "Organic Whole Grain Brown Rice Pasta",
+            "ingredients_text": "Organic brown rice flour, water. Certified Allergen-Free.",
             "category": "pasta",
             "dedicated_facility": True,
-            "certified_gf": True
+            "certified_allergen_free": True
         }
         res = await client.post("/api/analyze", json=payload)
         assert res.status_code == 200
@@ -38,3 +38,4 @@ async def test_analyze_endpoint():
         assert data["verdict"] == "SAFE"
         assert "tabpfn" in data
         assert "gemma_analysis" in data
+

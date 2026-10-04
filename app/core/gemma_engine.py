@@ -9,20 +9,26 @@ from app.core.sentry_tracing import AgentSpan
 
 logger = logging.getLogger("allerguard.gemma")
 
-SYSTEM_PROMPT = f"""You are AllerGuard AI, an expert open-weight clinical allergen guardian built specifically for {settings.friend.name}.
-{settings.friend.name}'s Medical Profile:
-- {settings.friend.primary_conditions[0]}
-- {settings.friend.primary_conditions[1]}
-- Cross-contamination: {settings.friend.cross_contamination_tolerance}
-- Emergency Action: {settings.friend.emergency_protocol}
+SYSTEM_PROMPT = f"""You are AllerGuard AI, an expert open-weight clinical allergen guardian built for {settings.profile.name}.
+{settings.profile.name}'s Medical Profile:
+- {settings.profile.primary_conditions[0]}
+- {settings.profile.primary_conditions[1]}
+- {settings.profile.primary_conditions[2]}
+- {settings.profile.primary_conditions[3]}
+- Cross-contamination: {settings.profile.cross_contamination_tolerance}
+- Emergency Action: {settings.profile.emergency_protocol}
 
 Your mission:
 1. Provide a definitive safety verdict: [SAFE], [CAUTION - INVESTIGATE], or [DANGER - DO NOT EAT].
-2. Identify any explicit or hidden gluten/nut derivatives (malt, natural flavors, modified food starch, shared equipment).
-3. Cross-reference TabPFN tabular risk scores and web verification findings.
-4. Recommend safe, certified gluten-free / nut-free substitutions for {settings.friend.name}.
-5. State clearly why open innovation (local weights, privacy, offline reliability) is critical for protecting {settings.friend.name}'s health without third-party tracking.
-Keep explanations concise, medically accurate, and decisive.
+2. Identify any explicit or disguised nut, peanut, coconut, or sesame derivatives:
+   - Sesame hidden names: tahini, halvah, benne, sesamum indicum, sesame oil/flour, til, gomasio, generic "spices/natural flavors".
+   - Coconut hidden names: coconut oil/milk/cream, MCT oil, copra, coconut aminos, sodium cocoate, plant-based dairy substitutes.
+   - Peanut hidden names: arachis oil, groundnut, peanut flour/butter, beer nuts, hydrolyzed peanut protein.
+   - Tree nut hidden names: almond, walnut, cashew, pecan, pistachio, hazelnut, macadamia, marzipan, praline, gianduja, nougat.
+3. Cross-reference TabPFN tabular risk probabilities and web recall findings.
+4. Recommend safe, certified nut-free, peanut-free, coconut-free, and sesame-free substitutions for {settings.profile.name}.
+5. State clearly why open innovation (local open weights, edge privacy, offline grocery reliability) is vital for protecting {settings.profile.name}'s health without third-party ad tracking or cloud downtime.
+Keep explanations concise, medically rigorous, and decisive.
 """
 
 class GemmaEngine:
@@ -55,12 +61,12 @@ TabPFN Foundation Model Risk Analysis:
 Live Web & Recall Intelligence:
 - Recalls/Findings: {json.dumps(web_search_results.get('findings', []) if web_search_results else [])}
 
-Generate a structured clinical review for {settings.friend.name} with:
+Generate a structured clinical review for {settings.profile.name} with:
 1. Verdict & Executive Summary
 2. Ingredient Breakdown (flagging any suspicious items)
-3. Cross-Contamination & Manufacturing Assessment
-4. Safe Alternatives for {settings.friend.name}
-5. Open-Source AI Edge Advantage (why local open AI protects {settings.friend.name})
+3. Cross-Contamination & Manufacturing Assessment (shared lines for tree nuts, peanuts, coconut, sesame)
+4. Safe Alternatives for {settings.profile.name}
+5. Open-Source AI Edge Advantage (why local open AI protects {settings.profile.name})
 """
 
         with AgentSpan("gemma.inference", f"Gemma 2 inference on {product_name}", {"model": self.model_name}) as span:
@@ -125,43 +131,43 @@ Generate a structured clinical review for {settings.friend.name} with:
         ambiguous = features["ambiguous_terms"]
 
         if risk == "DANGER":
-            verdict = f"[DANGER - DO NOT EAT] 🚫 Severe health hazard for {settings.friend.name}"
+            verdict = f"[DANGER - DO NOT EAT] 🚫 Severe health hazard for {settings.profile.name}"
             summary = (
-                f"This product poses an unacceptable anaphylaxis or severe celiac autoimmune activation risk. "
-                f"Identified triggers: {', '.join(allergens) if allergens else 'Shared equipment advisory with primary allergen'}. "
-                f"{settings.friend.name}'s zero-tolerance boundary is breached."
+                f"This product poses an unacceptable anaphylactic or severe allergic reaction risk for {settings.profile.name}. "
+                f"Identified triggers: {', '.join(allergens) if allergens else 'Shared facility/line advisory with tree nuts, peanuts, coconut, or sesame'}. "
+                f"{settings.profile.name}'s zero-tolerance boundary is breached. Epinephrine intervention would be required."
             )
             substitutes = (
-                f"1. Siete Foods Certified Grain-Free alternatives\n"
-                f"2. Simple Mills Certified GF Almond/Nut-Free Snack Crackers\n"
-                f"3. MadeGood dedicated allergy-friendly facility products"
+                f"1. Seed-based but sesame-free certified brands (e.g. 88 Acres pumpkin/sunflower seed butter)\n"
+                f"2. Dedicated Top-9 Allergen-Free brands (e.g. MadeGood, Partake Foods)\n"
+                f"3. Pure olive oil or avocado oil dressings instead of blended/sesame oils"
             )
         elif risk == "CAUTION":
-            verdict = f"[CAUTION - INVESTIGATE] ⚠️ Unverified manufacturing risk for {settings.friend.name}"
+            verdict = f"[CAUTION - INVESTIGATE] ⚠️ Unverified manufacturing risk for {settings.profile.name}"
             summary = (
-                f"While no direct wheat, rye, barley, or tree nuts are explicitly printed, the formulation contains "
-                f"{len(ambiguous)} ambiguous additives ({', '.join(ambiguous)}) and lacks dedicated facility verification. "
-                f"High likelihood of hidden gluten binder or shared machinery cross-contact."
+                f"While no direct peanuts, tree nuts, coconut, or sesame are explicitly stated, the formulation contains "
+                f"{len(ambiguous)} ambiguous additives ({', '.join(ambiguous)}) without dedicated facility verification. "
+                f"High likelihood of hidden sesame flavoring, coconut-derived emulsifiers/MCT, or shared manufacturing lines."
             )
             substitutes = (
-                f"1. Look for GFCO (Gluten-Free Certification Organization) third-party seal on packaging\n"
-                f"2. Contact manufacturer hot-line to verify dedicated line protocol\n"
-                f"3. Substitute with certified single-ingredient whole food alternatives"
+                f"1. Seek products with explicit certified peanut-free and nut-free facility seals\n"
+                f"2. Contact manufacturer hotline to verify whether 'natural flavors' or 'spices' contain sesame or coconut\n"
+                f"3. Substitute with whole-food single-ingredient certified items"
             )
         else:
-            verdict = f"[SAFE] ✅ Verified safe profile for {settings.friend.name}"
+            verdict = f"[SAFE] ✅ Verified safe profile for {settings.profile.name}"
             summary = (
-                f"Clean formulation with zero gluten grain derivatives and zero tree nut proteins. "
+                f"Clean formulation with zero peanuts, tree nuts, coconut, or sesame protein. "
                 f"TabPFN safety probability is {tabpfn_results['probabilities']['safe']}%. "
-                f"Complies with {settings.friend.name}'s medical protocol."
+                f"Complies with {settings.profile.name}'s strict zero-tolerance threshold."
             )
             substitutes = "No substitution needed. Product aligns with dietary safety thresholds."
 
         open_innovation_statement = (
             f"Why Open Innovation Matters Here:\n"
-            f"If {settings.friend.name} is standing in a grocery store basement or rural market with zero mobile reception, "
-            f"closed cloud APIs fail completely. Open-weight Gemma runs directly on local device hardware without sending "
-            f"{settings.friend.name}'s sensitive health data to tracking servers or paying token fees."
+            f"When {settings.profile.name} is in a store basement or restaurant without cell service, "
+            f"closed cloud APIs fail completely. Open-weight Gemma runs locally on the device, ensuring life-saving "
+            f"allergen verification without leaking medical histories to third-party ad brokers or charging per-token fees."
         )
 
         return f"""### 1. Clinical Verdict: {verdict}
@@ -171,10 +177,10 @@ Generate a structured clinical review for {settings.friend.name} with:
 
 ### 2. Ingredient Breakdown:
 - **Total Ingredients:** {features['ingredient_count']}
-- **Direct Allergens Detected:** {', '.join(allergens) if allergens else 'None explicitly listed'}
+- **Direct Allergens Detected (Nut / Peanut / Coconut / Sesame):** {', '.join(allergens) if allergens else 'None explicitly listed'}
 - **Ambiguous Items Requiring Caution:** {', '.join(ambiguous) if ambiguous else 'None detected'}
-- **Certified Gluten-Free:** {'Yes (<10 ppm)' if features['certified_gluten_free'] else 'No certification mark found'}
 - **Dedicated Allergen-Free Facility:** {'Yes' if features['dedicated_facility'] else 'Unconfirmed/Shared'}
+- **Third-Party Allergen Safe Certification:** {'Yes' if features['certified_allergen_free'] else 'No'}
 
 ### 3. TabPFN Cross-Contamination Assessment:
 - TabPFN Foundation Model predicted **{risk}** with **{tabpfn_results['probabilities'][risk.lower()]}% confidence**.

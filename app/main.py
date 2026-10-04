@@ -1,7 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 from typing import Optional
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    description="A Private, Offline-First Dietary Guardian for Severe Celiac & Tree Nut Allergies",
+    description="A Private, Offline-First Allergen Guardian for Tree Nut, Peanut, Coconut, and Sesame Allergies",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -31,7 +31,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir, exist_ok=True)
@@ -42,7 +41,7 @@ class AnalyzeRequest(BaseModel):
     ingredients_text: str
     category: Optional[str] = "general"
     dedicated_facility: Optional[bool] = False
-    certified_gf: Optional[bool] = False
+    certified_allergen_free: Optional[bool] = False
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
@@ -57,57 +56,67 @@ async def health_check():
     return {
         "status": "healthy",
         "service": settings.app_name,
-        "friend": settings.friend.name,
+        "protected_user": settings.profile.name,
         "gemma_model": settings.gemma_model,
         "tabpfn_ready": True
     }
 
 @app.get("/api/profile")
 async def get_profile():
-    return settings.friend.model_dump()
+    return settings.profile.model_dump()
 
 @app.get("/api/demo-samples")
 async def get_demo_samples():
     return [
         {
             "id": "sample-1",
-            "name": "Trader's Oven Pretzel Crisps",
-            "category": "snacks",
-            "ingredients": "Enriched flour (wheat flour, niacin, reduced iron, thiamin mononitrate), malt extract, salt, soybean oil, barley yeast.",
+            "name": "Artisanal Za'atar & Herb Flatbread",
+            "category": "bakery",
+            "ingredients": "Enriched unbleached wheat flour, olive oil, wild thyme, sumac, toasted sesame seeds, sesame oil, sea salt.",
             "dedicated_facility": False,
-            "certified_gf": False,
+            "certified_allergen_free": False,
             "expected_verdict": "DANGER",
-            "rationale": "Direct wheat flour and barley malt: severe activation of Celiac auto-antibodies."
+            "rationale": "Direct toasted sesame seeds and sesame oil: severe anaphylaxis hazard."
         },
         {
             "id": "sample-2",
-            "name": "PeakFuel Dark Chocolate Nut-Crunch Bar",
-            "category": "energy_bar",
-            "ingredients": "Soy protein isolate, chicory root fiber, dark chocolate coating (sugar, cocoa butter, soy lecithin), natural flavors, cashew butter, almond pieces. May contain traces of walnuts and milk.",
+            "name": "Dairy-Free Artisanal Vegan Mozzarella",
+            "category": "dairy_alt",
+            "ingredients": "Filtered water, modified potato starch, refined coconut oil, coconut cream, sea salt, natural flavors.",
             "dedicated_facility": False,
-            "certified_gf": False,
+            "certified_allergen_free": False,
             "expected_verdict": "DANGER",
-            "rationale": "Direct cashew & almond allergens with tree nut shared-line advisory: severe anaphylaxis risk."
+            "rationale": "Heavily disguised coconut oil and coconut cream in plant-based formulation: strict allergen violation."
         },
         {
             "id": "sample-3",
-            "name": "Country Ranch Gourmet Salad Dressing",
-            "category": "salad_dressing",
-            "ingredients": "Canola oil, water, egg yolk, modified food starch, vinegar, natural flavors, spices, caramel color, xanthan gum, polysorbate 60.",
+            "name": "Spicy Thai Satay Simmer Sauce",
+            "category": "sauces",
+            "ingredients": "Water, sugar, roasted peanut butter, tamari soy sauce, red chili, garlic, crushed peanuts, tahini (sesame paste).",
             "dedicated_facility": False,
-            "certified_gf": False,
-            "expected_verdict": "CAUTION",
-            "rationale": "Contains ambiguous modified food starch and unlisted natural flavors without GF certification."
+            "certified_allergen_free": False,
+            "expected_verdict": "DANGER",
+            "rationale": "Direct dual peanut and sesame allergen triggers: critical anaphylactic emergency hazard."
         },
         {
             "id": "sample-4",
-            "name": "Siete Certified Sea Salt Cassava Chips",
-            "category": "chips_corn",
-            "ingredients": "Cassava flour, avocado oil, coconut flour, ground chia seed, sea salt. Certified Gluten-Free. Produced in a dedicated gluten-free and tree nut-free facility.",
+            "name": "Gourmet Creamy Caesar Dressing",
+            "category": "condiments",
+            "ingredients": "Canola oil, water, egg yolk, parmesan cheese, vinegar, natural flavors, spices, cold-pressed vegetable oil blend, anchovy paste.",
+            "dedicated_facility": False,
+            "certified_allergen_free": False,
+            "expected_verdict": "CAUTION",
+            "rationale": "Ambiguous 'spices', 'natural flavors', and unverified 'vegetable oil blend' frequently conceal sesame or coconut derivatives."
+        },
+        {
+            "id": "sample-5",
+            "name": "Organic Seed-Craft Rosemary Crackers",
+            "category": "snacks",
+            "ingredients": "Sunflower seeds, pumpkin seeds, ground chia seeds, cassava flour, cold-pressed olive oil, sea salt, organic rosemary. Certified Nut-Free. Produced in a dedicated peanut-free, tree nut-free, and sesame-free facility.",
             "dedicated_facility": True,
-            "certified_gf": True,
+            "certified_allergen_free": True,
             "expected_verdict": "SAFE",
-            "rationale": "Certified Gluten-Free (<10ppm), single-origin grains, dedicated nut-free facility."
+            "rationale": "Dedicated peanut/nut/sesame-free facility; sunflower & pumpkin seeds; zero coconut or sesame presence."
         }
     ]
 
@@ -118,6 +127,6 @@ async def analyze_ingredients(req: AnalyzeRequest):
         ingredients_text=req.ingredients_text,
         category=req.category or "general",
         dedicated_facility=bool(req.dedicated_facility),
-        certified_gf=bool(req.certified_gf)
+        certified_allergen_free=bool(req.certified_allergen_free)
     )
     return JSONResponse(content=result)

@@ -9,28 +9,23 @@ logger = logging.getLogger("allerguard.tabpfn")
 
 # Default benchmark recall rates per category
 CATEGORY_RECALL_BENCHMARKS = {
-    "bakery": 0.45,
-    "cereal": 0.35,
-    "snacks": 0.15,
-    "dairy": 0.05,
-    "condiments": 0.25,
-    "sauces": 0.35,
-    "candy": 0.20,
-    "beverages": 0.02,
-    "meat_alt": 0.40,
-    "frozen_meals": 0.50,
-    "pasta": 0.30,
-    "granola": 0.38,
-    "chocolate": 0.25,
-    "protein_powder": 0.35,
-    "general": 0.20
+    "bakery": 0.48,
+    "candy": 0.42,
+    "snacks": 0.25,
+    "dairy_alt": 0.50, # high coconut / almond milk cross-contact
+    "sauces": 0.38,    # high sesame / peanut cross-contact
+    "asian_cuisine": 0.55, # high sesame / peanut / coconut oil
+    "energy_bar": 0.60,
+    "condiments": 0.30,
+    "beverages": 0.05,
+    "general": 0.25
 }
 
 class TabPFNAllergenClassifier:
     """
     Prior Labs TabPFN-powered tabular risk classifier.
-    Analyzes multi-dimensional manufacturing, ingredient complexity, and cross-contact features
-    to classify allergen risk into: 0 (Safe), 1 (Caution), 2 (Danger).
+    Analyzes manufacturing parameters, hidden ingredient camouflage, and cross-contact signals
+    specifically for Tree Nut, Peanut, Coconut, and Sesame allergies.
     """
 
     def __init__(self, dataset_path: str = "app/data/allergen_risk_dataset.csv"):
@@ -41,8 +36,8 @@ class TabPFNAllergenClassifier:
             "ingredient_count",
             "processing_risk_score",
             "ambiguous_terms_count",
-            "certification_gluten_free",
-            "dedicated_facility",
+            "dedicated_allergen_free_facility",
+            "certified_nut_sesame_free",
             "historical_recall_rate",
             "cross_contact_warning_present"
         ]
@@ -53,7 +48,6 @@ class TabPFNAllergenClassifier:
         if os.path.exists(self.dataset_path):
             df = pd.read_csv(self.dataset_path)
         else:
-            # Fallback path if run from different cwd
             alt_path = os.path.join(os.path.dirname(__file__), "..", "data", "allergen_risk_dataset.csv")
             df = pd.read_csv(alt_path)
 
@@ -84,67 +78,88 @@ class TabPFNAllergenClassifier:
         raw_text: str,
         category: str = "general",
         dedicated_facility: bool = False,
-        certified_gf: bool = False
+        certified_allergen_free: bool = False
     ) -> Tuple[np.ndarray, Dict[str, Any]]:
         """Parses label text into a structured tabular feature vector."""
         text_lower = raw_text.lower()
 
-        # 1. Ingredient Count (splitting by comma/semicolon/parentheses)
+        # 1. Ingredient Count
         clean_text = re.sub(r'\(.*?\)', '', text_lower)
         tokens = [t.strip() for t in re.split(r'[,;:]', clean_text) if t.strip()]
         ingredient_count = max(len(tokens), 1)
 
-        # 2. Ambiguous terms detection
+        # 2. Ambiguous terms that commonly camouflage nut, coconut, or sesame derivatives
         ambiguous_keywords = [
             "natural flavor", "natural flavors", "artificial flavor", "artificial flavors",
-            "spices", "spice", "modified food starch", "modified starch", "malt",
-            "caramel color", "yeast extract", "hydrolyzed", "smoke flavor", "emulsifier",
-            "seasoning", "flavoring", "dextrin"
+            "spices", "spice blend", "flavoring", "vegetable oil", "plant-based oil",
+            "cold-pressed oil", "emulsifier", "emulsifiers", "hydrolyzed protein",
+            "hydrolyzed plant protein", "seasoning", "caramel color"
         ]
         ambiguous_matches = [kw for kw in ambiguous_keywords if kw in text_lower]
         ambiguous_count = len(ambiguous_matches)
 
-        # 3. Dedicated facility & GF certification signals
-        has_certified_gf = 1 if (certified_gf or "certified gluten-free" in text_lower or "certified gf" in text_lower) else 0
-        has_dedicated_facility = 1 if (dedicated_facility or "dedicated facility" in text_lower or "dedicated gluten-free facility" in text_lower) else 0
+        # 3. Certified Allergen-Free & Dedicated Facility Signals
+        has_certified = 1 if (certified_allergen_free or "certified nut-free" in text_lower or "allergy friendly certified" in text_lower or "certified peanut free" in text_lower) else 0
+        has_dedicated_facility = 1 if (dedicated_facility or "dedicated nut-free facility" in text_lower or "dedicated facility" in text_lower or "peanut-free facility" in text_lower or "sesame-free facility" in text_lower) else 0
 
-        # 4. Cross contact warnings
+        # 4. Cross-contact warning signals
         cross_contact_signals = [
             "may contain", "manufactured in a facility that also processes",
             "processed on shared equipment", "made on shared equipment",
-            "packaged in a facility that handles"
+            "packaged in a facility that handles peanuts", "shared line with tree nuts",
+            "shared equipment with sesame", "facility handles coconut"
         ]
         has_cross_contact = 1 if any(sig in text_lower for sig in cross_contact_signals) else 0
 
-        # 5. Direct allergen trigger score (Wheat, Gluten, Tree Nuts, Peanuts)
+        # 5. Direct Allergen Triggers for Tree Nut, Peanut, Coconut, and Sesame
         danger_triggers = [
-            "wheat", "barley", "rye", "malt", "brewer's yeast", "triticale", "spelt",
-            "almond", "walnut", "cashew", "pecan", "pistachio", "hazelnut", "brazil nut",
-            "peanut", "macadamia"
+            # Peanuts
+            "peanut", "peanuts", "peanut butter", "peanut oil", "peanut flour", "arachis hypogaea", "groundnut", "groundnuts",
+            # Tree Nuts
+            "almond", "almonds", "almond flour", "almond milk", "almond butter",
+            "walnut", "walnuts", "cashew", "cashews", "cashew butter", "cashew milk",
+            "pecan", "pecans", "pistachio", "pistachios", "hazelnut", "hazelnuts", "filbert",
+            "brazil nut", "brazil nuts", "macadamia", "macadamias", "pine nut", "pine nuts",
+            "marzipan", "praline", "gianduja", "nougat",
+            # Coconut
+            "coconut", "coconut oil", "coconut milk", "coconut cream", "cream of coconut",
+            "coconut water", "coconut flour", "coconut aminos", "coconut sugar", "mct oil", "copra",
+            # Sesame
+            "sesame", "sesame seed", "sesame seeds", "sesame oil", "sesame paste",
+            "tahini", "tahina", "halvah", "halva", "benne", "benne seed", "gomasio",
+            "sesamum indicum", "sesame flour", "til"
         ]
-        direct_triggers_found = [trig for trig in danger_triggers if re.search(r'\b' + re.escape(trig) + r'\b', text_lower)]
+        direct_triggers_found = []
+        for trig in danger_triggers:
+            if re.search(r'\b' + re.escape(trig) + r'\b', text_lower):
+                direct_triggers_found.append(trig)
+        direct_triggers_found = list(set(direct_triggers_found))
 
-        # Base processing risk calculation
+        # Base processing risk score
         if direct_triggers_found:
-            processing_risk = 0.95
+            processing_risk = 0.98
         elif has_cross_contact:
             processing_risk = 0.75
-        elif has_dedicated_facility and has_certified_gf:
+        elif has_dedicated_facility and has_certified:
             processing_risk = 0.05
         elif ambiguous_count >= 2:
-            processing_risk = 0.50
+            processing_risk = 0.55
         else:
             processing_risk = 0.25
 
         # 6. Historical category recall benchmark
-        recall_rate = CATEGORY_RECALL_BENCHMARKS.get(category.lower(), 0.20)
+        base_recall = CATEGORY_RECALL_BENCHMARKS.get(category.lower(), 0.25)
+        if has_dedicated_facility and has_certified:
+            recall_rate = 0.03
+        else:
+            recall_rate = base_recall
 
         feature_dict = {
             "ingredient_count": ingredient_count,
             "processing_risk_score": float(processing_risk),
             "ambiguous_terms_count": ambiguous_count,
-            "certification_gluten_free": has_certified_gf,
-            "dedicated_facility": has_dedicated_facility,
+            "dedicated_allergen_free_facility": has_dedicated_facility,
+            "certified_nut_sesame_free": has_certified,
             "historical_recall_rate": float(recall_rate),
             "cross_contact_warning_present": has_cross_contact,
             "ambiguous_matches": ambiguous_matches,
@@ -155,8 +170,8 @@ class TabPFNAllergenClassifier:
             ingredient_count,
             processing_risk,
             ambiguous_count,
-            has_certified_gf,
             has_dedicated_facility,
+            has_certified,
             recall_rate,
             has_cross_contact
         ]])
@@ -168,18 +183,17 @@ class TabPFNAllergenClassifier:
         raw_text: str,
         category: str = "general",
         dedicated_facility: bool = False,
-        certified_gf: bool = False
+        certified_allergen_free: bool = False
     ) -> Dict[str, Any]:
         """Runs tabular prediction using TabPFN."""
         vector, features = self.extract_features(
             raw_text=raw_text,
             category=category,
             dedicated_facility=dedicated_facility,
-            certified_gf=certified_gf
+            certified_allergen_free=certified_allergen_free
         )
 
         probs = self.model.predict_proba(vector)[0]
-        # Pad probs if fewer classes seen
         if len(probs) < 3:
             full_probs = [0.0, 0.0, 0.0]
             for idx, p in enumerate(probs):
@@ -188,30 +202,29 @@ class TabPFNAllergenClassifier:
         else:
             probs = [float(p) for p in probs]
 
-        # Override if direct prohibited allergen is found in text
+        # Deterministic override if prohibited allergen is present
         if features["direct_triggers_found"]:
             pred_class = 2  # Danger
-            probs = [0.02, 0.08, 0.90]
+            probs = [0.01, 0.04, 0.95]
         else:
             pred_class = int(np.argmax(probs))
 
         risk_labels = {0: "SAFE", 1: "CAUTION", 2: "DANGER"}
         risk_label = risk_labels[pred_class]
 
-        # Determine key risk drivers for the post / UI
         drivers = []
         if features["direct_triggers_found"]:
             drivers.append(f"Explicit prohibited allergen detected: {', '.join(features['direct_triggers_found'])}")
         if features["cross_contact_warning_present"]:
-            drivers.append("Manufacturer shared-equipment or shared-facility advisory present")
+            drivers.append("Manufacturer shared-equipment or shared-facility advisory present (tree nuts, peanuts, coconut, or sesame)")
         if features["ambiguous_terms_count"] > 0:
-            drivers.append(f"Ambiguous ingredients that frequently harbor gluten/nut cross-contamination: {', '.join(features['ambiguous_matches'])}")
-        if features["certification_gluten_free"]:
-            drivers.append("Third-party Gluten-Free certification confirmed (<10ppm verification)")
-        if features["dedicated_facility"]:
-            drivers.append("Packaged in dedicated allergen-free manufacturing facility")
+            drivers.append(f"Ambiguous ingredients that frequently hide nut/sesame derivatives: {', '.join(features['ambiguous_matches'])}")
+        if features["certified_nut_sesame_free"]:
+            drivers.append("Third-party allergen-safe certification confirmed")
+        if features["dedicated_allergen_free_facility"]:
+            drivers.append("Packaged in dedicated allergen-free facility")
         if not drivers:
-            drivers.append("Standard processed food profile with baseline historical recall variance")
+            drivers.append("Standard processed food profile with baseline recall variance")
 
         return {
             "engine": self.engine_name,
@@ -227,8 +240,8 @@ class TabPFNAllergenClassifier:
                 "processing_risk_score": round(features["processing_risk_score"], 2),
                 "ambiguous_terms": features["ambiguous_matches"],
                 "direct_allergens": features["direct_triggers_found"],
-                "certified_gluten_free": bool(features["certification_gluten_free"]),
-                "dedicated_facility": bool(features["dedicated_facility"])
+                "dedicated_facility": bool(features["dedicated_allergen_free_facility"]),
+                "certified_allergen_free": bool(features["certified_nut_sesame_free"])
             },
             "risk_drivers": drivers
         }

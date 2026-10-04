@@ -4,19 +4,30 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class FriendProfile(BaseModel):
-    name: str = "Maya"
+class UserAllergyProfile(BaseModel):
+    name: str = "Joshua"
     primary_conditions: list[str] = [
-        "Celiac Disease (Strict Gluten-Free: 0 ppm wheat, barley, rye, spelt, malt, brewer's yeast)",
-        "Severe Tree Nut Allergy (Almond, Walnut, Cashew, Pecan, Pistachio, Hazelnut)"
+        "Severe Tree Nut Allergy (Almonds, Walnuts, Cashews, Pecans, Pistachios, Hazelnuts, Macadamia)",
+        "Severe Peanut Allergy (Arachis hypogaea / Legume allergen with high anaphylaxis risk)",
+        "Coconut Allergy (Drupe allergen heavily hidden in dairy-free & plant-based formulations)",
+        "Sesame Allergy (FDA Major Allergen: hidden in spices, tahini, oils, and bakery glazes)"
     ]
-    cross_contamination_tolerance: str = "Zero tolerance (shared equipment, shared oil fryers, and bulk bins prohibited)"
+    cross_contamination_tolerance: str = "Strict Zero Tolerance (shared manufacturing equipment, shared fryers, and uncertified bulk handling prohibited)"
     high_risk_hidden_ingredients: list[str] = [
-        "natural flavors", "malt extract", "modified food starch", "caramel color",
-        "hydrolyzed vegetable protein", "smoke flavoring", "dextrin", "spices (unspecified)",
-        "emulsifiers", "praline", "marzipan", "gianduja", "nougat"
+        # Sesame hidden terms
+        "tahini", "sesame", "sesamum indicum", "halvah", "benne", "gomasio", "sesame flour", "til", "gingelly",
+        # Coconut hidden terms
+        "coconut", "coconut milk", "coconut oil", "coconut aminos", "cream of coconut", "mct oil", "copra",
+        # Peanut hidden terms
+        "peanut", "groundnut", "beer nuts", "arachis oil", "peanut flour", "hydrolyzed peanut protein",
+        # Tree nut hidden terms
+        "almond", "walnut", "cashew", "pecan", "pistachio", "hazelnut", "brazil nut", "macadamia",
+        "marzipan", "praline", "gianduja", "nougat", "nut meal", "nut paste",
+        # Ambiguous camouflage terms
+        "natural flavors", "natural flavoring", "artificial flavors", "spices", "vegetable oil blend",
+        "hydrolyzed plant protein", "emulsifiers", "cold-pressed oil"
     ]
-    emergency_protocol: str = "Epinephrine autoinjector required immediately on accidental ingestion; seek emergency medical care."
+    emergency_protocol: str = "Immediate Epinephrine Auto-Injector (EpiPen / Auvi-Q) upon suspected exposure; call 911."
 
 class Settings(BaseModel):
     # App
@@ -38,13 +49,13 @@ class Settings(BaseModel):
 
     # ElevenLabs Audio Accessibility
     elevenlabs_api_key: str = os.getenv("ELEVENLABS_API_KEY", "")
-    elevenlabs_voice_id: str = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM") # Rachel (clear, calm voice)
+    elevenlabs_voice_id: str = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
     # Sentry Agent Tracing
     sentry_dsn: str = os.getenv("SENTRY_DSN", "")
     sentry_environment: str = os.getenv("SENTRY_ENVIRONMENT", "production")
 
-    # Default Friend Profile
-    friend: FriendProfile = FriendProfile()
+    # User Profile
+    profile: UserAllergyProfile = UserAllergyProfile()
 
 settings = Settings()

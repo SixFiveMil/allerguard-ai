@@ -14,6 +14,7 @@ logger = logging.getLogger("allerguard.agent")
 class AllerGuardAgent:
     """
     AllerGuard AI Master Orchestrator Agent.
+    Customized specifically for Tree Nut, Peanut, Coconut, and Sesame allergies.
     Combines:
     - Prior Labs TabPFN (Tabular risk classification)
     - Google Gemma 2 (Open-weight clinical reasoning)
@@ -28,7 +29,7 @@ class AllerGuardAgent:
         ingredients_text: str,
         category: str = "general",
         dedicated_facility: bool = False,
-        certified_gf: bool = False
+        certified_allergen_free: bool = False
     ) -> Dict[str, Any]:
         start_time = time.perf_counter()
         trace_steps = []
@@ -40,7 +41,7 @@ class AllerGuardAgent:
                 raw_text=ingredients_text,
                 category=category,
                 dedicated_facility=dedicated_facility,
-                certified_gf=certified_gf
+                certified_allergen_free=certified_allergen_free
             )
             step1_duration = round((time.perf_counter() - step1_start) * 1000, 2)
             trace_steps.append({
@@ -77,16 +78,16 @@ class AllerGuardAgent:
                 "step": 3,
                 "name": f"Google Gemma 2 ({gemma_res['execution_mode']})",
                 "operation": "gemma.inference",
-                "details": f"Generated clinical dietary safety synthesis for {settings.friend.name}",
+                "details": f"Generated clinical dietary safety synthesis for {settings.profile.name}",
                 "latency_ms": step3_duration
             })
 
             # 4. ElevenLabs Voice Generation
             step4_start = time.perf_counter()
             audio_script = (
-                f"{settings.friend.name}, AllerGuard safety assessment for {product_name}: "
+                f"{settings.profile.name}, AllerGuard safety assessment for {product_name}: "
                 f"Verdict is {tabpfn_res['risk_level']}. "
-                f"{'Danger! Do not eat this item.' if tabpfn_res['risk_level'] == 'DANGER' else 'Exercise caution due to ambiguous ingredients.' if tabpfn_res['risk_level'] == 'CAUTION' else 'This product meets your safe dietary profile.'}"
+                f"{'Danger! Do not eat this item. Critical allergen detected.' if tabpfn_res['risk_level'] == 'DANGER' else 'Caution! Ambiguous ingredients may hide nut, coconut, or sesame derivatives.' if tabpfn_res['risk_level'] == 'CAUTION' else 'This product meets your safe dietary profile with no detected nut, coconut, or sesame allergens.'}"
             )
             voice_res = await elevenlabs_tool.generate_speech(audio_script)
             step4_duration = round((time.perf_counter() - step4_start) * 1000, 2)
@@ -104,8 +105,8 @@ class AllerGuardAgent:
 
             return {
                 "product_name": product_name,
-                "friend_name": settings.friend.name,
-                "conditions": settings.friend.primary_conditions,
+                "user_name": settings.profile.name,
+                "conditions": settings.profile.primary_conditions,
                 "verdict": tabpfn_res["risk_level"],
                 "tabpfn": tabpfn_res,
                 "web_grounding": web_res,

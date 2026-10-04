@@ -1,18 +1,21 @@
-# 🛡️ AllerGuard AI: Open-Source Dietary Guardian
+# 🛡️ AllerGuard AI: Open-Source Dietary & Allergen Guardian
 
-> **Built for Maya** — for the [Hacktoberfest Weekend DEV Challenge: Build for a Friend](https://dev.to/challenges/hacktoberfest-weekend-2026-10-01)  
-> *A private, offline-first clinical food safety guardian protecting a loved one with severe Celiac disease and tree nut anaphylaxis risk.*
+> **Built for Friends & Family Cooking for Severe Allergies** — for the [Hacktoberfest Weekend DEV Challenge: Build for a Friend](https://dev.to/challenges/hacktoberfest-weekend-2026-10-01)  
+> *A private, offline-first food safety guardian protecting against life-threatening Tree Nut, Peanut, Coconut, and Sesame allergies.*
 
 ---
 
 ## 🌟 The Story & Problem
-Maya is my close friend and roommate. Living with both **severe Celiac disease** (strict 0 ppm gluten tolerance) and **anaphylactic tree nut allergies**, everyday life revolves around a high-stress minefield of grocery packaging and dining out. 
+I live with life-threatening anaphylactic allergies to **Tree Nuts, Peanuts, Coconut, and Sesame**. 
 
-- **Deceptive Labeling:** "Natural flavors", "modified food starch", "spices", or vague caramel colorings often conceal wheat binders or nut extracts.
-- **Shared Facilities:** Products with clean ingredient lists often turn out to be manufactured on shared conveyor lines or processing equipment with nuts and wheat.
-- **The Cloud AI Failure Mode:** Commercial cloud AI assistants require an active internet connection (failing in grocery store basements), hallucinate medical safety, and transmit private medical/dietary profiles to commercial tracking servers.
+Whenever friends, roommates, or family invite me over for dinner, cook a holiday meal, or pick up groceries, an innocent dinner party becomes a high-stakes anxiety test. Nobody wants to send their friend to the emergency room with an epinephrine auto-injector, but navigating the modern grocery aisle without a medical degree is nearly impossible:
 
-**AllerGuard AI** was built to solve this: an open-source, local-first dietary guardian that combines **Prior Labs' TabPFN** tabular foundation model, **Google Gemma 2** open-weight reasoning, **SerpApi** live food recall verification, **Sentry Agent Tracing**, and **ElevenLabs** hands-free voice alerts.
+- **Deceptive Camouflage & Alternate Names:** Sesame hides under *tahini, benne seeds, halvah, and gomasio*. Peanuts hide as *arachis oil*. Tree nuts hide as *marzipan, gianduja, and praline*. Coconut is ubiquitous in vegan cheeses, non-dairy creamers, and disguised as *MCT oil* or *copra*.
+- **Vague Commercial Binders:** Labels listing "natural flavors", "cold-pressed oils", "vegetable emulsifiers", or "spice blends" frequently mask cross-reactive nut derivatives or cold-pressed sesame extracts.
+- **Shared Facilities & Cross-Contact:** Products with seemingly safe ingredient lists are frequently processed on shared equipment with peanut flour or crushed sesame seeds without bolded front-of-package warnings.
+- **The Cloud AI Failure Mode:** Commercial cloud AI assistants require active cell signals (failing in grocery store basements), hallucinate medical safety on ambiguous food additives, and transmit sensitive health data to commercial ad brokers.
+
+**AllerGuard AI** was built so my friends and family—and anyone managing severe food allergies—have an instant, offline-capable guardian. It combines **Prior Labs' TabPFN** tabular foundation model, **Google Gemma 2** open-weight clinical reasoning, **SerpApi** live FDA recall verification, **Sentry Agent Tracing**, and **ElevenLabs** hands-free voice alerts.
 
 ---
 
@@ -23,7 +26,7 @@ flowchart TD
     User["Label Text / Packaging Statement"] --> Agent["AllerGuard AI Master Agent"]
 
     subgraph FeaturePipeline ["1. Feature Extraction"]
-        Feat["Tabular Features: Ingredient Count, Ambiguity Score, Certification Flags, Category Recall Rate"]
+        Feat["Tabular Features: Ingredient Count, Ambiguity Density, Certification Flags, Category Recall Rate"]
     end
 
     subgraph TabPFNEngine ["2. Tabular Prediction"]
@@ -38,7 +41,7 @@ flowchart TD
 
     subgraph ClinicalReasoning ["4. Open-Weight Clinical Synthesis"]
         Gemma["Google Gemma 2 (Local / Edge / Open-Weight)"]
-        Verdict["Safety Verdict + Specific Risk Breakdown + Safe Alternatives"]
+        Verdict["Safety Verdict + Specific Allergen Breakdown + Safe Alternatives"]
     end
 
     subgraph AudioObservability ["5. UX & Observability"]
@@ -59,12 +62,12 @@ flowchart TD
 
 | Partner Category | Role in AllerGuard AI |
 | :--- | :--- |
-| **Best Use of Gemma** ($200 - Featured) | Powers the clinical reasoning engine (**Gemma 2**), evaluating Celiac autoimmune triggers, identifying ambiguous binders, and recommending certified safe substitutions. Runs locally or via open endpoints. |
-| **Best Use of TabPFN** ($200 - Featured) | Uses Prior Labs' **TabPFN** tabular foundation model to analyze multi-dimensional manufacturing risk features (ingredient count, ambiguity score, GF certification, dedicated facility, historical category recall rates) in a single zero-shot forward pass. |
+| **Best Use of Gemma** ($200 - Featured) | Powers the clinical reasoning engine (**Gemma 2**), evaluating anaphylactic hazards (tree nuts, peanuts, coconut, sesame), identifying ambiguous binders, and recommending safe substitutions. Runs locally or via open endpoints. |
+| **Best Use of TabPFN** ($200 - Featured) | Uses Prior Labs' **TabPFN** tabular foundation model to analyze multi-dimensional manufacturing risk features (ingredient count, ambiguity score, dedicated facility, allergen-free certification, historical category recall rates) in a single zero-shot forward pass. |
 | **Best Use of Render** ($200 - Featured) | Turnkey deployment configured via `render.yaml` blueprint, production `Dockerfile`, and automated `/api/health` probes. |
 | **Best Use of Sentry Agent Tracing** ($100) | Instruments every agent execution span (`tabpfn.classify`, `serpapi.search`, `gemma.inference`, `elevenlabs.tts`) with millisecond latency and token telemetry. |
 | **Best Use of SerpApi** ($100) | Live web search tool cross-referencing FDA allergen recall databases and manufacturer shared equipment disclosures. |
-| **Best Use of ElevenLabs** ($100) | Generates hands-free voice audio summaries so Maya can hear safety verdicts while pushing a shopping cart or cooking. |
+| **Best Use of ElevenLabs** ($100) | Generates hands-free voice audio summaries so friends or family can hear instant safety verdicts while pushing a shopping cart or cooking in the kitchen. |
 
 ---
 
@@ -125,4 +128,4 @@ Deploy with one click using the included `render.yaml`:
 ---
 
 ## 📜 License
-MIT License. Built for Maya and open to everyone managing severe dietary restrictions.
+MIT License. Built for friends, family, and anyone managing life-threatening food allergies.
