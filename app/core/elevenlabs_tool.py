@@ -33,14 +33,19 @@ class ElevenLabsTool:
                     }
                     payload = {
                         "text": summary_text,
-                        "model_id": "eleven_monolingual_v1",
+                        "model_id": "eleven_turbo_v2_5",
                         "voice_settings": {
-                            "stability": 0.65,
-                            "similarity_boost": 0.8
+                            "stability": 0.5,
+                            "similarity_boost": 0.75
                         }
                     }
                     async with httpx.AsyncClient(timeout=10.0) as client:
                         resp = await client.post(url, json=payload, headers=headers)
+                        # If voice ID is restricted on free tier, retry with default premade voice (George: JBFqnCBsd6RMkjVDRZzb)
+                        if resp.status_code == 402 or (resp.status_code == 400 and "voice" in resp.text.lower()):
+                            fallback_url = "https://api.elevenlabs.io/v1/text-to-speech/JBFqnCBsd6RMkjVDRZzb"
+                            resp = await client.post(fallback_url, json=payload, headers=headers)
+
                         if resp.status_code == 200:
                             audio_b64 = base64.b64encode(resp.content).decode("utf-8")
                             span.data["status"] = "success"
