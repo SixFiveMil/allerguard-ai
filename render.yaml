@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: allerguard-ai
+    env: python
+    region: oregon
+    plan: free
+    branch: master
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GEMMA_API_BASE
+        value: https://openrouter.ai/api/v1
+      - key: GEMMA_MODEL
+        value: google/gemma-2-9b-it
+      - key: GEMMA_API_KEY
+        sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: TABPFN_ENABLED
+        value: "true"

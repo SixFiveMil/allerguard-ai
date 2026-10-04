@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AllerGuard AI | Built for Maya — Open-Source Dietary Guardian</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-emerald-500 selection:text-white">
+
+  <!-- Navigation / Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-shield-heart"></i>
+        </div>
+        <div>
+          <span class="font-bold text-lg text-white tracking-tight flex items-center gap-2">
+            AllerGuard <span class="text-xs bg-emerald-500/20 text-emerald-400 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">AI</span>
+          </span>
+          <p class="text-xs text-slate-400">Open-Source Dietary Guardian &bull; Built for Maya</p>
+        </div>
+      </div>
+      
+      <!-- Partner Category Badges -->
+      <div class="hidden md:flex items-center space-x-2 text-xs">
+        <span class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center gap-1.5">
+          <i class="fa-solid fa-microchip text-blue-400"></i> Gemma 2
+        </span>
+        <span class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center gap-1.5">
+          <i class="fa-solid fa-table-cells text-amber-400"></i> TabPFN
+        </span>
+        <span class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center gap-1.5">
+          <i class="fa-solid fa-server text-purple-400"></i> Render
+        </span>
+        <span class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center gap-1.5">
+          <i class="fa-solid fa-chart-line text-rose-400"></i> Sentry
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- Friend Context Card -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-850 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <i class="fa-solid fa-heart mr-1.5 text-rose-400"></i> Hacktoberfest 2026: Build for a Friend
+            </span>
+            <span class="text-xs text-slate-400">Personalized Medical Profile</span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+            Protecting Maya: Celiac &amp; Severe Tree Nut Allergies
+          </h1>
+          <p class="text-sm text-slate-300 max-w-3xl leading-relaxed">
+            Maya lives with severe Celiac disease and tree nut anaphylaxis risk. Grocery shopping is an anxiety-inducing chore where "natural flavors" or shared conveyor lines can lead to hospitalization. AllerGuard operates with <strong class="text-emerald-400">zero cloud data exposure</strong> and works <strong class="text-emerald-400">offline on-device</strong> so Maya is never stranded without internet in grocery basements.
+          </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+          <div class="bg-slate-950/80 px-4 py-2.5 rounded-xl border border-slate-800 text-xs space-y-0.5">
+            <div class="text-slate-400">Primary Rule</div>
+            <div class="font-bold text-amber-400">Strict 0 Gluten &amp; 0 Tree Nuts</div>
+          </div>
+          <div class="bg-slate-950/80 px-4 py-2.5 rounded-xl border border-slate-800 text-xs space-y-0.5">
+            <div class="text-slate-400">Cross-Contact</div>
+            <div class="font-bold text-rose-400">Zero Tolerance</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Demo Presets -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <i class="fa-solid fa-bolt text-amber-400 mr-1.5"></i> 1-Click Interactive Test Cases
+        </span>
+        <span class="text-xs text-slate-500">Click any preset to load &amp; analyze</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="demo-presets-container">
+        <!-- Loaded via JS -->
+      </div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- Input Panel (5 cols) -->
+      <div class="lg:col-span-5 bg-slate-900/90 rounded-2xl border border-slate-800 p-6 space-y-5 shadow-lg">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-barcode text-emerald-400"></i> Label Scanner &amp; Input
+          </h2>
+          <span class="text-xs text-slate-400">Real-time Analysis</span>
+        </div>
+
+        <form id="analyze-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Product Name</label>
+            <input 
+              type="text" 
+              id="product_name" 
+              placeholder="e.g. Organic Cassava Flour Tortilla Chips" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+              required
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Food Category</label>
+            <select 
+              id="category" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+            >
+              <option value="snacks">Snacks &amp; Chips</option>
+              <option value="bakery">Bakery &amp; Bread</option>
+              <option value="cereal">Cereals &amp; Granola</option>
+              <option value="energy_bar">Energy &amp; Protein Bars</option>
+              <option value="salad_dressing">Dressings &amp; Sauces</option>
+              <option value="candy">Confectionery &amp; Chocolate</option>
+              <option value="dairy">Dairy &amp; Plant Milks</option>
+              <option value="general">General Packaged Goods</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+              Ingredients &amp; Packaging Disclosures
+            </label>
+            <textarea 
+              id="ingredients_text" 
+              rows="5" 
+              placeholder="Paste ingredient list or packaging statements (e.g. 'Enriched flour, malt extract, natural flavors. May contain tree nuts...')" 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+              required
+            ></textarea>
+          </div>
+
+          <!-- Boolean verification checkboxes -->
+          <div class="space-y-2.5 bg-slate-950/60 p-3.5 rounded-xl border border-slate-850">
+            <label class="flex items-center gap-2.5 cursor-pointer text-xs text-slate-300 select-none">
+              <input type="checkbox" id="certified_gf" class="w-4 h-4 rounded text-emerald-500 focus:ring-0 bg-slate-900 border-slate-700">
+              <span>Third-party <strong>Certified Gluten-Free</strong> seal visible (<10 ppm)</span>
+            </label>
+            <label class="flex items-center gap-2.5 cursor-pointer text-xs text-slate-300 select-none">
+              <input type="checkbox" id="dedicated_facility" class="w-4 h-4 rounded text-emerald-500 focus:ring-0 bg-slate-900 border-slate-700">
+              <span><strong>Dedicated facility</strong> disclosure (GF &amp; Nut-free lines)</span>
+            </label>
+          </div>
+
+          <button 
+            type="submit" 
+            id="analyze-btn"
+            class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 font-bold text-sm text-slate-950 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 cursor-pointer"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Run AllerGuard Open AI Analysis
+          </button>
+        </form>
+      </div>
+
+      <!-- Analysis Results Panel (7 cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Initial Placeholder State -->
+        <div id="empty-state" class="bg-slate-900/60 border border-dashed border-slate-800 rounded-2xl p-12 text-center space-y-3">
+          <div class="w-16 h-16 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-2xl">
+            <i class="fa-solid fa-shield-virus"></i>
+          </div>
+          <h3 class="text-base font-bold text-slate-300">Awaiting Product Analysis</h3>
+          <p class="text-xs text-slate-500 max-w-sm mx-auto">
+            Choose a quick demo test case above or paste an ingredient label to inspect with TabPFN, Gemma 2, and SerpApi.
+          </p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-4">
+          <div class="inline-block animate-spin w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+          <h3 class="text-base font-bold text-white">Running Multi-Stage Open AI Pipeline</h3>
+          <div class="text-xs text-slate-400 max-w-md mx-auto space-y-1">
+            <div id="pipeline-step-text" class="text-emerald-400 font-mono">1/4: TabPFN evaluating tabular manufacturing features...</div>
+          </div>
+        </div>
+
+        <!-- Active Results View -->
+        <div id="results-state" class="hidden space-y-6">
+
+          <!-- Verdict Banner -->
+          <div id="verdict-banner" class="p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+            <div class="flex items-center gap-3.5">
+              <div id="verdict-icon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"></div>
+              <div>
+                <div class="text-xs uppercase font-bold tracking-wider" id="verdict-subtitle">Safety Verdict</div>
+                <div class="text-2xl font-black tracking-tight" id="verdict-title">SAFE</div>
+              </div>
+            </div>
+            <!-- Audio Button -->
+            <button 
+              id="audio-speak-btn"
+              class="px-4 py-2.5 rounded-xl bg-slate-950/80 hover:bg-slate-950 border border-slate-700/80 text-xs font-semibold text-white flex items-center gap-2 transition cursor-pointer shrink-0"
+            >
+              <i class="fa-solid fa-volume-high text-emerald-400"></i> Listen (ElevenLabs)
+            </button>
+          </div>
+
+          <!-- Prior Labs TabPFN Engine Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-table-cells"></i>
+                </span>
+                <h3 class="text-sm font-bold text-white">Prior Labs TabPFN Foundation Model Analysis</h3>
+              </div>
+              <span id="tabpfn-engine-badge" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">
+                TabPFN Prior Neural Model
+              </span>
+            </div>
+
+            <!-- Probability Bars -->
+            <div class="grid grid-cols-3 gap-3">
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
+                <div class="text-[11px] text-slate-400 font-medium">Safe Probability</div>
+                <div class="text-lg font-extrabold text-emerald-400" id="prob-safe">0%</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
+                <div class="text-[11px] text-slate-400 font-medium">Caution Probability</div>
+                <div class="text-lg font-extrabold text-amber-400" id="prob-caution">0%</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
+                <div class="text-[11px] text-slate-400 font-medium">Danger Probability</div>
+                <div class="text-lg font-extrabold text-rose-400" id="prob-danger">0%</div>
+              </div>
+            </div>
+
+            <!-- TabPFN Risk Drivers -->
+            <div class="space-y-1.5">
+              <div class="text-xs font-semibold text-slate-300">Statistical Risk Factors Identified:</div>
+              <ul id="tabpfn-drivers" class="text-xs text-slate-400 space-y-1 pl-4 list-disc">
+                <!-- JS populated -->
+              </ul>
+            </div>
+          </div>
+
+          <!-- Gemma 2 Clinical Synthesis Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-brain"></i>
+                </span>
+                <h3 class="text-sm font-bold text-white">Google Gemma 2 Clinical Synthesis</h3>
+              </div>
+              <span id="gemma-engine-badge" class="text-[11px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
+                Open-Weight Reasoning
+              </span>
+            </div>
+
+            <div id="gemma-content" class="text-xs text-slate-300 leading-relaxed whitespace-pre-line bg-slate-950 p-4 rounded-xl border border-slate-850">
+              <!-- JS Populated -->
+            </div>
+          </div>
+
+          <!-- SerpApi Live Food Safety Intelligence -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <h3 class="text-sm font-bold text-white">Live Web Grounding (SerpApi FDA Recalls)</h3>
+              </div>
+              <span class="text-[11px] text-slate-400" id="serpapi-source">FDA / Google Search</span>
+            </div>
+            <div id="serpapi-findings" class="space-y-2 text-xs">
+              <!-- JS Populated -->
+            </div>
+          </div>
+
+          <!-- Sentry Agent Tracing Telemetry Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-chart-line"></i>
+                </span>
+                <h3 class="text-sm font-bold text-white">Sentry Agent Tracing Spans</h3>
+              </div>
+              <span class="text-xs font-mono text-emerald-400" id="total-latency">Total: 0ms</span>
+            </div>
+            <div id="trace-breakdown" class="space-y-2 text-xs">
+              <!-- JS Populated -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-slate-800/80 mt-16 py-8 text-center text-xs text-slate-500 space-y-2">
+    <div>
+      AllerGuard AI &bull; Built with pride for Maya for the 
+      <a href="https://dev.to/challenges/hacktoberfest-weekend-2026-10-01" target="_blank" class="text-emerald-400 hover:underline">
+        Hacktoberfest Weekend DEV Challenge: Build for a Friend
+      </a>
+    </div>
+    <div class="text-[11px] text-slate-600">
+      Open-Source AI &bull; Gemma 2 &bull; Prior Labs TabPFN &bull; Render &bull; Sentry &bull; SerpApi &bull; ElevenLabs
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
