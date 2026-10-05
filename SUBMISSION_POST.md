@@ -7,6 +7,9 @@ cover_image: https://raw.githubusercontent.com/your-username/allerguard-ai/maste
 
 *This is a submission for the [Hacktoberfest Weekend Challenge: Build for a Friend](https://dev.to/challenges/hacktoberfest-weekend-2026-10-01)*
 
+🌐 **Live Interactive Demo:** [https://allerguard-ai-5lim.onrender.com](https://allerguard-ai-5lim.onrender.com)  
+👉 **GitHub Repository:** [https://github.com/SixFiveMil/keen-oppenheimer](https://github.com/SixFiveMil/keen-oppenheimer)
+
 ---
 
 I live with life-threatening anaphylactic allergies to **Tree Nuts, Peanuts, Coconut, and Sesame**.
