@@ -1,5 +1,5 @@
 ---
-title: "I Tested 100 Food Labels Offline on an Airplane-Mode Laptop for My Friends' Severe Allergies. AllerGuard AI Caught 98% of Hidden Binders Without Cloud APIs."
+title: "Testing 100 Food Labels Offline for My Friends' Severe Allergies: How AllerGuard AI Catches Hidden Binders"
 published: true
 tags: devchallenge, weekendchallenge, hf26challenge, opensource
 cover_image: https://raw.githubusercontent.com/SixFiveMil/allerguard-ai/master/assets/banner.png
