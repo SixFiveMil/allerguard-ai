@@ -1,10 +1,12 @@
+![AllerGuard AI Banner](assets/banner.png)
+
 # 🛡️ AllerGuard AI: Open-Source Dietary & Allergen Guardian
 
 > **Built for Friends & Family Cooking for Severe Allergies** — for the [Hacktoberfest Weekend DEV Challenge: Build for a Friend](https://dev.to/challenges/hacktoberfest-weekend-2026-10-01)  
 > *A private, offline-first food safety guardian protecting against life-threatening Tree Nut, Peanut, Coconut, and Sesame allergies.*
 
 🌐 **Live Interactive Demo:** [https://allerguard-ai-5lim.onrender.com](https://allerguard-ai-5lim.onrender.com)  
-👉 **GitHub Repository:** [https://github.com/SixFiveMil/keen-oppenheimer](https://github.com/SixFiveMil/keen-oppenheimer)
+👉 **GitHub Repository:** [https://github.com/SixFiveMil/allerguard-ai](https://github.com/SixFiveMil/allerguard-ai)
 
 ---
 

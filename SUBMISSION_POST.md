@@ -12,7 +12,9 @@ cover_image: https://raw.githubusercontent.com/SixFiveMil/allerguard-ai/master/a
 
 ---
 
-## The Dinner Party Dilemma: Building for My Friends
+## What I Built
+
+### Who It's For: The Dinner Party Dilemma
 
 I live with life-threatening anaphylactic allergies to **Tree Nuts, Peanuts, Coconut, and Sesame**. My friend **Maya** has severe **Celiac Disease**, and another close friend, **Alex**, has a debilitating **Dairy and Egg** allergy.
 
@@ -74,7 +76,9 @@ This is why we integrated **Google Gemma 2**: open-weight LLMs possess true ling
 
 ---
 
-## What I Built & Demo
+## Demo
+
+🌐 **Live Interactive Application:** [https://allerguard-ai-5lim.onrender.com](https://allerguard-ai-5lim.onrender.com)
 
 AllerGuard AI features a clean, responsive web interface built with Tailwind CSS, FastAPI, dynamic friend allergy customizers, and reactive audio controls.
 
@@ -177,7 +181,7 @@ I tested AllerGuard across 100 real packaging statements from common and special
 
 ---
 
-## Why Does Open Innovation Matter?
+## Why Open Innovation Matters
 
 1. **Medical Privacy at the Edge:** Food allergies and anaphylaxis risks are deeply sensitive personal health data. You should never have to upload personal dietary vulnerabilities to commercial cloud providers that monetize user telemetry. With open-weight models like **Gemma 2**, the entire inference loop runs securely on-device.
 2. **Resilience Without Connectivity:** Supermarket basements and rural specialty food markets are notorious cellular dead zones. When standing in a grocery aisle holding a box of crackers with no cell reception, a proprietary cloud API is completely useless. Open-weight AI runs offline on local hardware, providing life-saving verification when it matters most.
