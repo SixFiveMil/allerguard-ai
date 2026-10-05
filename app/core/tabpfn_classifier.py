@@ -115,10 +115,18 @@ class TabPFNAllergenClassifier:
         has_cross_contact = 1 if any(sig in text_lower for sig in cross_contact_signals) else 0
 
         # 5. Direct Allergen Triggers from user's active allergy profile
+        # First, strip negative allergen claims (e.g. "peanut-free", "sesame-free", "free of nuts", "dedicated peanut-free facility")
+        # so manufacturer safety certifications do not accidentally trigger false alarms!
+        scan_text = text_lower
+        scan_text = re.sub(r'\b[a-z0-9\-]+-free\b', ' ', scan_text)
+        scan_text = re.sub(r'\bfree (of|from)\s+[a-z0-9\-, ]+(\.|\;|$)', ' ', scan_text)
+        scan_text = re.sub(r'\b(dedicated|certified)\s+[a-z0-9\-, ]+facility\b', ' ', scan_text)
+        scan_text = re.sub(r'\b(contains no|no added|without)\s+[a-z0-9\-, ]+(\.|\;|$)', ' ', scan_text)
+
         danger_triggers = active_triggers if active_triggers is not None else settings.profile.get_all_triggers()
         direct_triggers_found = []
         for trig in danger_triggers:
-            if re.search(r'\b' + re.escape(trig) + r'\b', text_lower):
+            if re.search(r'\b' + re.escape(trig) + r'\b', scan_text):
                 direct_triggers_found.append(trig)
         direct_triggers_found = list(set(direct_triggers_found))
 
