@@ -127,13 +127,26 @@ class AllerGuardAgent:
 
             total_duration = round((time.perf_counter() - start_time) * 1000, 2)
             master_span.data["total_latency_ms"] = total_duration
-            master_span.data["risk_level"] = tabpfn_res["risk_level"]
+
+            # Contextual Synthesis:
+            # TabPFN provides the statistical risk prior, but Gemma 2 provides contextual language understanding
+            # (e.g. recognizing that "nut-free" or "sesame-free" is a safety claim, not an active ingredient).
+            gemma_text = gemma_res.get("analysis", "")
+            final_verdict = tabpfn_res["risk_level"]
+            if "[SAFE]" in gemma_text:
+                final_verdict = "SAFE"
+            elif "[DANGER" in gemma_text:
+                final_verdict = "DANGER"
+            elif "[CAUTION" in gemma_text:
+                final_verdict = "CAUTION"
+
+            master_span.data["risk_level"] = final_verdict
 
             return {
                 "product_name": product_name,
                 "user_name": name,
                 "conditions": labels,
-                "verdict": tabpfn_res["risk_level"],
+                "verdict": final_verdict,
                 "tabpfn": tabpfn_res,
                 "web_grounding": web_res,
                 "gemma_analysis": gemma_res,
