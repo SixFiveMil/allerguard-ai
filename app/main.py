@@ -36,12 +36,17 @@ if not os.path.exists(static_dir):
     os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
+from app.config import settings, ALLERGEN_REGISTRY, UserAllergyProfile
+
 class AnalyzeRequest(BaseModel):
     product_name: str
     ingredients_text: str
     category: Optional[str] = "general"
     dedicated_facility: Optional[bool] = False
     certified_allergen_free: Optional[bool] = False
+    user_name: Optional[str] = None
+    selected_allergens: Optional[list[str]] = None
+    custom_allergens: Optional[list[str]] = None
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
@@ -61,9 +66,41 @@ async def health_check():
         "tabpfn_ready": True
     }
 
+@app.get("/api/allergen-catalog")
+async def get_allergen_catalog():
+    """Returns the full catalog of pre-configured allergen profiles & triggers."""
+    catalog = []
+    for key, val in ALLERGEN_REGISTRY.items():
+        catalog.append({
+            "id": key,
+            "label": val["label"],
+            "description": val["description"],
+            "trigger_count": len(val["triggers"]),
+            "sample_triggers": val["triggers"][:6],
+            "substitutes": val["substitutes"]
+        })
+    return catalog
+
 @app.get("/api/profile")
 async def get_profile():
-    return settings.profile.model_dump()
+    return {
+        "name": settings.profile.name,
+        "selected_allergens": settings.profile.selected_allergens,
+        "custom_allergens": settings.profile.custom_allergens,
+        "labels": settings.profile.get_allergen_labels(),
+        "total_active_triggers": len(settings.profile.get_all_triggers())
+    }
+
+@app.post("/api/profile")
+async def update_profile(prof: UserAllergyProfile):
+    """Allows user to update global default profile."""
+    settings.profile = prof
+    return {
+        "status": "updated",
+        "name": settings.profile.name,
+        "labels": settings.profile.get_allergen_labels(),
+        "total_active_triggers": len(settings.profile.get_all_triggers())
+    }
 
 @app.get("/api/demo-samples")
 async def get_demo_samples():
@@ -127,6 +164,9 @@ async def analyze_ingredients(req: AnalyzeRequest):
         ingredients_text=req.ingredients_text,
         category=req.category or "general",
         dedicated_facility=bool(req.dedicated_facility),
-        certified_allergen_free=bool(req.certified_allergen_free)
+        certified_allergen_free=bool(req.certified_allergen_free),
+        user_name=req.user_name,
+        selected_allergens=req.selected_allergens,
+        custom_allergens=req.custom_allergens
     )
     return JSONResponse(content=result)

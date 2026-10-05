@@ -70,33 +70,69 @@
 
   <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
 
-    <!-- Hero / Personal Context Card -->
-    <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-850 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
-      <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="space-y-1.5">
-          <div class="flex items-center gap-2">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <i class="fa-solid fa-shield-heart mr-1.5 text-rose-400"></i> Personal Anaphylaxis Guardian
-            </span>
-            <span class="text-xs text-slate-400">Strict Multi-Allergen Safety Protocol</span>
+    <!-- Dynamic Allergy Profile Selector & Customizer -->
+    <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-user-pen"></i>
           </div>
-          <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-            Protecting Against Hidden Tree Nut, Peanut, Coconut &amp; Sesame Allergens
-          </h1>
-          <p class="text-sm text-slate-300 max-w-3xl leading-relaxed">
-            As someone living with life-threatening allergies to <strong class="text-rose-400">Tree Nuts</strong>, <strong class="text-rose-400">Peanuts</strong>, <strong class="text-amber-400">Coconut</strong>, and <strong class="text-amber-400">Sesame</strong>, grocery shopping and dining out is an anxious minefield. Coconut hides in almost every "dairy-free" or vegan product; sesame disguises itself under vague "spices" or "tahini"; and shared equipment triggers anaphylaxis. AllerGuard AI was built so I (and my friends who cook for me) can identify hidden derivatives instantly with <strong class="text-emerald-400">100% offline edge privacy</strong>.
-          </p>
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              Allergy Profile &amp; Dietary Boundaries
+              <span id="active-user-badge" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">Joshua</span>
+            </h2>
+            <p class="text-xs text-slate-400">Select anyone's allergens or customize for friends/family at your table</p>
+          </div>
         </div>
-        <div class="flex flex-col sm:flex-row gap-2 shrink-0">
-          <div class="bg-slate-950/80 px-3.5 py-2.5 rounded-xl border border-slate-800 text-xs space-y-0.5">
-            <div class="text-slate-400">Protected Allergens</div>
-            <div class="font-bold text-rose-400">Nuts, Peanuts, Coconut, Sesame</div>
-          </div>
-          <div class="bg-slate-950/80 px-3.5 py-2.5 rounded-xl border border-slate-800 text-xs space-y-0.5">
-            <div class="text-slate-400">Shared Equipment</div>
-            <div class="font-bold text-amber-400">Strict Zero Tolerance</div>
-          </div>
+        
+        <!-- Preset Profiles Quick Buttons -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[11px] text-slate-400 mr-1 font-semibold">Quick Presets:</span>
+          <button type="button" onclick="loadPresetProfile('joshua')" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer">
+            🥜 Joshua (Nuts/Sesame/Coconut)
+          </button>
+          <button type="button" onclick="loadPresetProfile('celiac')" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer">
+            🌾 Celiac (Gluten/Wheat)
+          </button>
+          <button type="button" onclick="loadPresetProfile('top9')" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer">
+            🛡️ Top-9 Free
+          </button>
+          <button type="button" onclick="loadPresetProfile('dairy_egg')" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer">
+            🥛 Dairy + Egg
+          </button>
+        </div>
+      </div>
+
+      <!-- Allergen Checkbox Matrix -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Active Protected Allergens (select any combination):</span>
+          <span id="active-trigger-count" class="font-mono text-emerald-400 text-[11px]">4 allergens active</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2" id="allergen-checkbox-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Person Name and Custom Allergen input -->
+      <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-850">
+        <div class="sm:w-1/3">
+          <input 
+            type="text" 
+            id="profile_name_input" 
+            value="Joshua"
+            placeholder="Person's Name (e.g. Maya, Alex)" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+          >
+        </div>
+        <div class="sm:w-2/3">
+          <input 
+            type="text" 
+            id="custom_allergen_input" 
+            placeholder="Add custom allergens (comma-separated, e.g. mustard, kiwi, poppy seeds)" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+          >
         </div>
       </div>
     </div>
@@ -171,11 +207,11 @@
           <div class="space-y-2.5 bg-slate-950/60 p-3.5 rounded-xl border border-slate-850">
             <label class="flex items-center gap-2.5 cursor-pointer text-xs text-slate-300 select-none">
               <input type="checkbox" id="certified_allergen_free" class="w-4 h-4 rounded text-emerald-500 focus:ring-0 bg-slate-900 border-slate-700">
-              <span>Third-party <strong>Certified Peanut / Nut-Free</strong> seal visible</span>
+              <span>Third-party <strong>Certified Allergen-Free</strong> seal visible</span>
             </label>
             <label class="flex items-center gap-2.5 cursor-pointer text-xs text-slate-300 select-none">
               <input type="checkbox" id="dedicated_facility" class="w-4 h-4 rounded text-emerald-500 focus:ring-0 bg-slate-900 border-slate-700">
-              <span><strong>Dedicated facility</strong> (Zero shared lines for nuts/peanuts/sesame)</span>
+              <span><strong>Dedicated facility</strong> (Zero shared lines for selected allergens)</span>
             </label>
           </div>
 
@@ -184,7 +220,7 @@
             id="analyze-btn"
             class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 font-bold text-sm text-slate-950 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 cursor-pointer"
           >
-            <i class="fa-solid fa-magnifying-glass-chart"></i> Analyze for Hidden Nut, Coconut &amp; Sesame Allergens
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Screen Ingredients for Protected Allergens
           </button>
         </form>
       </div>

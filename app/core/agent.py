@@ -1,8 +1,8 @@
 import time
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
-from app.config import settings
+from app.config import settings, ALLERGEN_REGISTRY
 from app.core.sentry_tracing import AgentSpan
 from app.core.tabpfn_classifier import tabpfn_classifier
 from app.core.gemma_engine import gemma_engine
@@ -29,10 +29,32 @@ class AllerGuardAgent:
         ingredients_text: str,
         category: str = "general",
         dedicated_facility: bool = False,
-        certified_allergen_free: bool = False
+        certified_allergen_free: bool = False,
+        user_name: Optional[str] = None,
+        selected_allergens: Optional[List[str]] = None,
+        custom_allergens: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         start_time = time.perf_counter()
         trace_steps = []
+
+        name = user_name or settings.profile.name
+        
+        # Build active triggers and labels based on request or global profile
+        if selected_allergens is not None:
+            active_allergens = selected_allergens
+            active_custom = custom_allergens or []
+            triggers = []
+            labels = []
+            for k in active_allergens:
+                if k in ALLERGEN_REGISTRY:
+                    triggers.extend(ALLERGEN_REGISTRY[k]["triggers"])
+                    labels.append(ALLERGEN_REGISTRY[k]["label"])
+            triggers.extend([c.lower().strip() for c in active_custom if c.strip()])
+            labels.extend([c.strip() for c in active_custom if c.strip()])
+            triggers = list(set(triggers))
+        else:
+            triggers = settings.profile.get_all_triggers()
+            labels = settings.profile.get_allergen_labels()
 
         with AgentSpan("agent.workflow", f"AllerGuard analysis: {product_name}") as master_span:
             # 1. TabPFN Inference
@@ -41,7 +63,8 @@ class AllerGuardAgent:
                 raw_text=ingredients_text,
                 category=category,
                 dedicated_facility=dedicated_facility,
-                certified_allergen_free=certified_allergen_free
+                certified_allergen_free=certified_allergen_free,
+                active_triggers=triggers
             )
             step1_duration = round((time.perf_counter() - step1_start) * 1000, 2)
             trace_steps.append({
@@ -71,23 +94,26 @@ class AllerGuardAgent:
                 product_name=product_name,
                 ingredients_text=ingredients_text,
                 tabpfn_results=tabpfn_res,
-                web_search_results=web_res
+                web_search_results=web_res,
+                user_name=name,
+                allergen_labels=labels
             )
             step3_duration = round((time.perf_counter() - step3_start) * 1000, 2)
             trace_steps.append({
                 "step": 3,
                 "name": f"Google Gemma 2 ({gemma_res['execution_mode']})",
                 "operation": "gemma.inference",
-                "details": f"Generated clinical dietary safety synthesis for {settings.profile.name}",
+                "details": f"Generated clinical dietary safety synthesis for {name}",
                 "latency_ms": step3_duration
             })
 
             # 4. ElevenLabs Voice Generation
             step4_start = time.perf_counter()
+            labels_summary = ", ".join(labels[:3])
             audio_script = (
-                f"{settings.profile.name}, AllerGuard safety assessment for {product_name}: "
+                f"{name}, AllerGuard safety assessment for {product_name}: "
                 f"Verdict is {tabpfn_res['risk_level']}. "
-                f"{'Danger! Do not eat this item. Critical allergen detected.' if tabpfn_res['risk_level'] == 'DANGER' else 'Caution! Ambiguous ingredients may hide nut, coconut, or sesame derivatives.' if tabpfn_res['risk_level'] == 'CAUTION' else 'This product meets your safe dietary profile with no detected nut, coconut, or sesame allergens.'}"
+                f"{'Danger! Do not eat this item. Critical allergen detected.' if tabpfn_res['risk_level'] == 'DANGER' else f'Caution! Ambiguous ingredients may hide {labels_summary} derivatives.' if tabpfn_res['risk_level'] == 'CAUTION' else f'This product meets your dietary profile with no detected {labels_summary} allergens.'}"
             )
             voice_res = await elevenlabs_tool.generate_speech(audio_script)
             step4_duration = round((time.perf_counter() - step4_start) * 1000, 2)
@@ -105,8 +131,8 @@ class AllerGuardAgent:
 
             return {
                 "product_name": product_name,
-                "user_name": settings.profile.name,
-                "conditions": settings.profile.primary_conditions,
+                "user_name": name,
+                "conditions": labels,
                 "verdict": tabpfn_res["risk_level"],
                 "tabpfn": tabpfn_res,
                 "web_grounding": web_res,

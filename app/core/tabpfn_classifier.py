@@ -1,9 +1,11 @@
 import os
 import re
 import logging
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 import pandas as pd
 import numpy as np
+
+from app.config import settings
 
 logger = logging.getLogger("allerguard.tabpfn")
 
@@ -78,7 +80,8 @@ class TabPFNAllergenClassifier:
         raw_text: str,
         category: str = "general",
         dedicated_facility: bool = False,
-        certified_allergen_free: bool = False
+        certified_allergen_free: bool = False,
+        active_triggers: Optional[List[str]] = None
     ) -> Tuple[np.ndarray, Dict[str, Any]]:
         """Parses label text into a structured tabular feature vector."""
         text_lower = raw_text.lower()
@@ -99,8 +102,8 @@ class TabPFNAllergenClassifier:
         ambiguous_count = len(ambiguous_matches)
 
         # 3. Certified Allergen-Free & Dedicated Facility Signals
-        has_certified = 1 if (certified_allergen_free or "certified nut-free" in text_lower or "allergy friendly certified" in text_lower or "certified peanut free" in text_lower) else 0
-        has_dedicated_facility = 1 if (dedicated_facility or "dedicated nut-free facility" in text_lower or "dedicated facility" in text_lower or "peanut-free facility" in text_lower or "sesame-free facility" in text_lower) else 0
+        has_certified = 1 if (certified_allergen_free or "certified nut-free" in text_lower or "allergy friendly certified" in text_lower or "certified peanut free" in text_lower or "certified allergen free" in text_lower or "certified gluten-free" in text_lower) else 0
+        has_dedicated_facility = 1 if (dedicated_facility or "dedicated nut-free facility" in text_lower or "dedicated facility" in text_lower or "peanut-free facility" in text_lower or "sesame-free facility" in text_lower or "allergen-free facility" in text_lower) else 0
 
         # 4. Cross-contact warning signals
         cross_contact_signals = [
@@ -111,24 +114,8 @@ class TabPFNAllergenClassifier:
         ]
         has_cross_contact = 1 if any(sig in text_lower for sig in cross_contact_signals) else 0
 
-        # 5. Direct Allergen Triggers for Tree Nut, Peanut, Coconut, and Sesame
-        danger_triggers = [
-            # Peanuts
-            "peanut", "peanuts", "peanut butter", "peanut oil", "peanut flour", "arachis hypogaea", "groundnut", "groundnuts",
-            # Tree Nuts
-            "almond", "almonds", "almond flour", "almond milk", "almond butter",
-            "walnut", "walnuts", "cashew", "cashews", "cashew butter", "cashew milk",
-            "pecan", "pecans", "pistachio", "pistachios", "hazelnut", "hazelnuts", "filbert",
-            "brazil nut", "brazil nuts", "macadamia", "macadamias", "pine nut", "pine nuts",
-            "marzipan", "praline", "gianduja", "nougat",
-            # Coconut
-            "coconut", "coconut oil", "coconut milk", "coconut cream", "cream of coconut",
-            "coconut water", "coconut flour", "coconut aminos", "coconut sugar", "mct oil", "copra",
-            # Sesame
-            "sesame", "sesame seed", "sesame seeds", "sesame oil", "sesame paste",
-            "tahini", "tahina", "halvah", "halva", "benne", "benne seed", "gomasio",
-            "sesamum indicum", "sesame flour", "til"
-        ]
+        # 5. Direct Allergen Triggers from user's active allergy profile
+        danger_triggers = active_triggers if active_triggers is not None else settings.profile.get_all_triggers()
         direct_triggers_found = []
         for trig in danger_triggers:
             if re.search(r'\b' + re.escape(trig) + r'\b', text_lower):
@@ -183,14 +170,16 @@ class TabPFNAllergenClassifier:
         raw_text: str,
         category: str = "general",
         dedicated_facility: bool = False,
-        certified_allergen_free: bool = False
+        certified_allergen_free: bool = False,
+        active_triggers: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """Runs tabular prediction using TabPFN."""
         vector, features = self.extract_features(
             raw_text=raw_text,
             category=category,
             dedicated_facility=dedicated_facility,
-            certified_allergen_free=certified_allergen_free
+            certified_allergen_free=certified_allergen_free,
+            active_triggers=active_triggers
         )
 
         probs = self.model.predict_proba(vector)[0]

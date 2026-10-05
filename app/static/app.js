@@ -1,9 +1,91 @@
 let currentAudioObj = null;
+let allergenCatalog = [];
+let selectedAllergenIds = ["tree_nuts", "peanuts", "coconut", "sesame"];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  await loadAllergenCatalog();
   await loadDemoPresets();
   setupFormHandler();
 });
+
+async function loadAllergenCatalog() {
+  const grid = document.getElementById('allergen-checkbox-grid');
+  try {
+    const res = await fetch('/api/allergen-catalog');
+    allergenCatalog = await res.json();
+    renderAllergenCheckboxes();
+  } catch (err) {
+    console.error('Failed to load allergen catalog:', err);
+  }
+}
+
+function renderAllergenCheckboxes() {
+  const grid = document.getElementById('allergen-checkbox-grid');
+  if (!grid) return;
+  grid.innerHTML = allergenCatalog.map(item => {
+    const isChecked = selectedAllergenIds.includes(item.id);
+    return `
+      <label class="flex items-center gap-2 p-2 rounded-xl border transition cursor-pointer select-none ${
+        isChecked 
+          ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-200' 
+          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+      }">
+        <input 
+          type="checkbox" 
+          value="${item.id}" 
+          ${isChecked ? 'checked' : ''} 
+          onchange="toggleAllergenSelection('${item.id}', this.checked)"
+          class="w-3.5 h-3.5 rounded text-emerald-500 focus:ring-0 bg-slate-900 border-slate-700"
+        >
+        <span class="text-xs font-semibold truncate">${item.label}</span>
+      </label>
+    `;
+  }).join('');
+  updateActiveProfileSummary();
+}
+
+function toggleAllergenSelection(id, checked) {
+  if (checked) {
+    if (!selectedAllergenIds.includes(id)) selectedAllergenIds.push(id);
+  } else {
+    selectedAllergenIds = selectedAllergenIds.filter(x => x !== id);
+  }
+  renderAllergenCheckboxes();
+}
+
+function loadPresetProfile(type) {
+  const nameInput = document.getElementById('profile_name_input');
+  const customInput = document.getElementById('custom_allergen_input');
+
+  if (type === 'joshua') {
+    nameInput.value = 'Joshua';
+    selectedAllergenIds = ['tree_nuts', 'peanuts', 'coconut', 'sesame'];
+    customInput.value = '';
+  } else if (type === 'celiac') {
+    nameInput.value = 'Maya (Celiac Friend)';
+    selectedAllergenIds = ['gluten_celiac', 'tree_nuts'];
+    customInput.value = '';
+  } else if (type === 'top9') {
+    nameInput.value = 'Top-9 Safe Profile';
+    selectedAllergenIds = ['tree_nuts', 'peanuts', 'sesame', 'gluten_celiac', 'dairy', 'eggs', 'soy', 'fish', 'shellfish'];
+    customInput.value = '';
+  } else if (type === 'dairy_egg') {
+    nameInput.value = 'Alex (Dairy & Egg Allergy)';
+    selectedAllergenIds = ['dairy', 'eggs'];
+    customInput.value = '';
+  }
+  renderAllergenCheckboxes();
+}
+
+function updateActiveProfileSummary() {
+  const nameInput = document.getElementById('profile_name_input');
+  const badge = document.getElementById('active-user-badge');
+  const countBadge = document.getElementById('active-trigger-count');
+
+  const name = nameInput ? nameInput.value.trim() || 'Custom User' : 'Joshua';
+  if (badge) badge.innerText = name;
+  if (countBadge) countBadge.innerText = `${selectedAllergenIds.length} allergens active`;
+}
 
 async function loadDemoPresets() {
   const container = document.getElementById('demo-presets-container');
@@ -57,6 +139,11 @@ function applyPreset(sample) {
 
 function setupFormHandler() {
   const form = document.getElementById('analyze-form');
+  const nameInput = document.getElementById('profile_name_input');
+  if (nameInput) {
+    nameInput.addEventListener('input', updateActiveProfileSummary);
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -65,6 +152,10 @@ function setupFormHandler() {
     const category = document.getElementById('category').value;
     const certifiedAllergenFree = document.getElementById('certified_allergen_free').checked;
     const dedicatedFacility = document.getElementById('dedicated_facility').checked;
+    
+    const userName = (document.getElementById('profile_name_input')?.value || 'Joshua').trim();
+    const customAllergensRaw = document.getElementById('custom_allergen_input')?.value || '';
+    const customAllergens = customAllergensRaw.split(',').map(s => s.trim()).filter(Boolean);
 
     if (!productName || !ingredientsText) return;
 
@@ -79,7 +170,10 @@ function setupFormHandler() {
           ingredients_text: ingredientsText,
           category: category,
           certified_allergen_free: certifiedAllergenFree,
-          dedicated_facility: dedicatedFacility
+          dedicated_facility: dedicatedFacility,
+          user_name: userName,
+          selected_allergens: selectedAllergenIds,
+          custom_allergens: customAllergens
         })
       });
 
@@ -129,24 +223,25 @@ function renderResults(data) {
   const title = document.getElementById('verdict-title');
   const subtitle = document.getElementById('verdict-subtitle');
 
+  const condList = data.conditions ? data.conditions.join(', ') : 'Protected Allergens';
   if (verdict === 'DANGER') {
     banner.className = 'p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl bg-rose-950/30 border-rose-500/50 text-rose-200';
     icon.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 bg-rose-500 text-white';
     icon.innerHTML = '<i class="fa-solid fa-ban"></i>';
     title.innerText = 'DANGER — DO NOT EAT';
-    subtitle.innerText = 'Nut, Peanut, Coconut, or Sesame Allergen Triggered';
+    subtitle.innerText = `Critical Allergen Triggered for ${data.user_name || 'User'} (${condList})`;
   } else if (verdict === 'CAUTION') {
     banner.className = 'p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl bg-amber-950/30 border-amber-500/50 text-amber-200';
     icon.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 bg-amber-500 text-slate-950';
     icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
     title.innerText = 'CAUTION — INVESTIGATE';
-    subtitle.innerText = 'Ambiguous Derivatives / Unconfirmed Manufacturing Lines';
+    subtitle.innerText = `Ambiguous Ingredients / Unconfirmed Lines (${condList})`;
   } else {
     banner.className = 'p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl bg-emerald-950/30 border-emerald-500/50 text-emerald-200';
     icon.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 bg-emerald-500 text-slate-950';
     icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
     title.innerText = 'SAFE TO CONSUME';
-    subtitle.innerText = 'Zero Nut, Peanut, Coconut, or Sesame Presence';
+    subtitle.innerText = `Zero Prohibited Allergens Detected for ${data.user_name || 'User'} (${condList})`;
   }
 
   // Setup Audio playback

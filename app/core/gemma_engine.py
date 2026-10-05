@@ -9,26 +9,23 @@ from app.core.sentry_tracing import AgentSpan
 
 logger = logging.getLogger("allerguard.gemma")
 
-SYSTEM_PROMPT = f"""You are AllerGuard AI, an expert open-weight clinical allergen guardian built for {settings.profile.name}.
-{settings.profile.name}'s Medical Profile:
-- {settings.profile.primary_conditions[0]}
-- {settings.profile.primary_conditions[1]}
-- {settings.profile.primary_conditions[2]}
-- {settings.profile.primary_conditions[3]}
+def get_system_prompt(user_name: Optional[str] = None, conditions: Optional[list[str]] = None) -> str:
+    name = user_name or settings.profile.name
+    cond_list = conditions if conditions is not None else settings.profile.primary_conditions
+    cond_str = "\n".join([f"- {c}" for c in cond_list])
+    return f"""You are AllerGuard AI, an expert open-weight clinical allergen guardian built for {name}.
+{name}'s Medical & Dietary Safety Profile:
+{cond_str}
 - Cross-contamination: {settings.profile.cross_contamination_tolerance}
 - Emergency Action: {settings.profile.emergency_protocol}
 
 Your mission:
 1. Provide a definitive safety verdict: [SAFE], [CAUTION - INVESTIGATE], or [DANGER - DO NOT EAT].
-2. Identify any explicit or disguised nut, peanut, coconut, or sesame derivatives:
-   - Sesame hidden names: tahini, halvah, benne, sesamum indicum, sesame oil/flour, til, gomasio, generic "spices/natural flavors".
-   - Coconut hidden names: coconut oil/milk/cream, MCT oil, copra, coconut aminos, sodium cocoate, plant-based dairy substitutes.
-   - Peanut hidden names: arachis oil, groundnut, peanut flour/butter, beer nuts, hydrolyzed peanut protein.
-   - Tree nut hidden names: almond, walnut, cashew, pecan, pistachio, hazelnut, macadamia, marzipan, praline, gianduja, nougat.
+2. Identify any explicit or disguised allergen derivatives matching their profile:
+   - Carefully inspect alternate names, botanical terms, and disguised additives.
 3. Cross-reference TabPFN tabular risk probabilities and web recall findings.
-4. Recommend safe, certified nut-free, peanut-free, coconut-free, and sesame-free substitutions for {settings.profile.name}.
-5. State clearly why open innovation (local open weights, edge privacy, offline grocery reliability) is vital for protecting {settings.profile.name}'s health without third-party ad tracking or cloud downtime.
-Keep explanations concise, medically rigorous, and decisive.
+4. Recommend safe, certified allergen-free substitutions for {name}.
+5. State clearly why open innovation (local open weights, edge privacy, offline grocery reliability) is vital for protecting {name}'s health without third-party ad tracking or cloud downtime.
 """
 
 class GemmaEngine:
@@ -47,11 +44,18 @@ class GemmaEngine:
         product_name: str,
         ingredients_text: str,
         tabpfn_results: Dict[str, Any],
-        web_search_results: Optional[Dict[str, Any]] = None
+        web_search_results: Optional[Dict[str, Any]] = None,
+        user_name: Optional[str] = None,
+        allergen_labels: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """Runs Gemma 2 clinical reasoning on the parsed allergen features."""
+        name = user_name or settings.profile.name
+        labels = allergen_labels or settings.profile.get_allergen_labels()
+        labels_str = ", ".join(labels)
+
         user_message = f"""Product: {product_name}
 Ingredients: {ingredients_text}
+Target Protected Allergen Profile for {name}: {labels_str}
 
 TabPFN Foundation Model Risk Analysis:
 - Predicted Level: {tabpfn_results['risk_level']}
@@ -61,12 +65,12 @@ TabPFN Foundation Model Risk Analysis:
 Live Web & Recall Intelligence:
 - Recalls/Findings: {json.dumps(web_search_results.get('findings', []) if web_search_results else [])}
 
-Generate a structured clinical review for {settings.profile.name} with:
+Generate a structured clinical review for {name} with:
 1. Verdict & Executive Summary
 2. Ingredient Breakdown (flagging any suspicious items)
-3. Cross-Contamination & Manufacturing Assessment (shared lines for tree nuts, peanuts, coconut, sesame)
-4. Safe Alternatives for {settings.profile.name}
-5. Open-Source AI Edge Advantage (why local open AI protects {settings.profile.name})
+3. Cross-Contamination & Manufacturing Assessment (shared lines for {labels_str})
+4. Safe Alternatives for {name}
+5. Open-Source AI Edge Advantage (why local open AI protects {name})
 """
 
         with AgentSpan("gemma.inference", f"Gemma 2 inference on {product_name}", {"model": self.model_name}) as span:
@@ -79,7 +83,7 @@ Generate a structured clinical review for {settings.profile.name} with:
                 payload = {
                     "model": self.model_name,
                     "messages": [
-                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "system", "content": get_system_prompt(name, labels)},
                         {"role": "user", "content": user_message}
                     ],
                     "temperature": 0.2,
@@ -107,7 +111,9 @@ Generate a structured clinical review for {settings.profile.name} with:
                 product_name=product_name,
                 ingredients_text=ingredients_text,
                 tabpfn_results=tabpfn_results,
-                web_search_results=web_search_results
+                web_search_results=web_search_results,
+                user_name=name,
+                allergen_labels=labels
             )
             span.data["execution_mode"] = "offline_local_gemma_engine"
             return {
@@ -122,50 +128,55 @@ Generate a structured clinical review for {settings.profile.name} with:
         product_name: str,
         ingredients_text: str,
         tabpfn_results: Dict[str, Any],
-        web_search_results: Optional[Dict[str, Any]]
+        web_search_results: Optional[Dict[str, Any]],
+        user_name: str = "Joshua",
+        allergen_labels: Optional[List[str]] = None
     ) -> str:
         """Deterministic edge reasoning adhering to Gemma 2 clinical prompt specification."""
+        name = user_name
+        labels = allergen_labels or settings.profile.get_allergen_labels()
+        labels_str = ", ".join(labels)
         risk = tabpfn_results["risk_level"]
         features = tabpfn_results["features_extracted"]
         allergens = features["direct_allergens"]
         ambiguous = features["ambiguous_terms"]
 
         if risk == "DANGER":
-            verdict = f"[DANGER - DO NOT EAT] 🚫 Severe health hazard for {settings.profile.name}"
+            verdict = f"[DANGER - DO NOT EAT] 🚫 Severe health hazard for {name}"
             summary = (
-                f"This product poses an unacceptable anaphylactic or severe allergic reaction risk for {settings.profile.name}. "
-                f"Identified triggers: {', '.join(allergens) if allergens else 'Shared facility/line advisory with tree nuts, peanuts, coconut, or sesame'}. "
-                f"{settings.profile.name}'s zero-tolerance boundary is breached. Epinephrine intervention would be required."
+                f"This product poses an unacceptable anaphylactic or severe allergic reaction risk for {name}. "
+                f"Identified triggers: {', '.join(allergens) if allergens else f'Shared facility/line advisory with {labels_str}'}. "
+                f"{name}'s zero-tolerance boundary is breached. Medical intervention or epinephrine required."
             )
             substitutes = (
-                f"1. Seed-based but sesame-free certified brands (e.g. 88 Acres pumpkin/sunflower seed butter)\n"
-                f"2. Dedicated Top-9 Allergen-Free brands (e.g. MadeGood, Partake Foods)\n"
-                f"3. Pure olive oil or avocado oil dressings instead of blended/sesame oils"
+                f"1. Certified Allergen-Free single-origin foods explicitly free of {labels_str}\n"
+                f"2. Dedicated facility Top-9 Allergen-Free brands (e.g. MadeGood, Partake Foods, 88 Acres)\n"
+                f"3. Verify batch-level third-party certification seals"
             )
         elif risk == "CAUTION":
-            verdict = f"[CAUTION - INVESTIGATE] ⚠️ Unverified manufacturing risk for {settings.profile.name}"
+            verdict = f"[CAUTION - INVESTIGATE] ⚠️ Unverified manufacturing risk for {name}"
             summary = (
-                f"While no direct peanuts, tree nuts, coconut, or sesame are explicitly stated, the formulation contains "
+                f"While no direct {labels_str} are explicitly declared, the formulation contains "
                 f"{len(ambiguous)} ambiguous additives ({', '.join(ambiguous)}) without dedicated facility verification. "
-                f"High likelihood of hidden sesame flavoring, coconut-derived emulsifiers/MCT, or shared manufacturing lines."
+                f"High likelihood of hidden flavor carriers, binders, or shared manufacturing lines."
             )
             substitutes = (
-                f"1. Seek products with explicit certified peanut-free and nut-free facility seals\n"
-                f"2. Contact manufacturer hotline to verify whether 'natural flavors' or 'spices' contain sesame or coconut\n"
+                f"1. Seek products with explicit certified facility seals for {labels_str}\n"
+                f"2. Contact manufacturer consumer hotline to confirm sub-ingredients of natural flavors and spices\n"
                 f"3. Substitute with whole-food single-ingredient certified items"
             )
         else:
-            verdict = f"[SAFE] ✅ Verified safe profile for {settings.profile.name}"
+            verdict = f"[SAFE] ✅ Verified safe profile for {name}"
             summary = (
-                f"Clean formulation with zero peanuts, tree nuts, coconut, or sesame protein. "
+                f"Clean formulation with zero detected {labels_str} proteins or derivatives. "
                 f"TabPFN safety probability is {tabpfn_results['probabilities']['safe']}%. "
-                f"Complies with {settings.profile.name}'s strict zero-tolerance threshold."
+                f"Complies with {name}'s strict zero-tolerance threshold."
             )
-            substitutes = "No substitution needed. Product aligns with dietary safety thresholds."
+            substitutes = f"No substitution needed. Product aligns with {name}'s dietary safety thresholds."
 
         open_innovation_statement = (
             f"Why Open Innovation Matters Here:\n"
-            f"When {settings.profile.name} is in a store basement or restaurant without cell service, "
+            f"When {name} or their friends are in a store basement or restaurant without cell service, "
             f"closed cloud APIs fail completely. Open-weight Gemma runs locally on the device, ensuring life-saving "
             f"allergen verification without leaking medical histories to third-party ad brokers or charging per-token fees."
         )
